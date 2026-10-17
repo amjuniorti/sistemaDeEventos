@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — EventHub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--dark-2) 50%, var(--dark-3) 100%);
+    }
+    .auth-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+      animation: authIn 0.4s ease;
+    }
+    @keyframes authIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .auth-logo {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .auth-logo span { color: var(--dark); }
+    .auth-title {
+      text-align: center;
+      font-size: 1.4rem;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+    }
+    .auth-subtitle {
+      text-align: center;
+      color: var(--gray-600);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .auth-tabs {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--gray-600);
+      transition: var(--transition);
+      text-align: center;
+    }
+    .auth-tab.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .auth-info {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--gray-600);
+    }
+    .auth-info a {
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .auth-info a:hover { text-decoration: underline; }
+    .auth-demo {
+      background: #fff8e1;
+      border-left: 4px solid var(--warning);
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      color: #856404;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .auth-demo strong { color: var(--dark); }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="eventos.html">Eventos</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-logo">Event<span>Hub</span></div>
+      <h1 class="auth-title" id="authTitle">Bem-vindo de volta</h1>
+      <p class="auth-subtitle" id="authSubtitle">Acesse sua conta para gerenciar eventos</p>
+
+      <div class="auth-tabs" id="authTabs">
+        <button type="button" class="auth-tab active" data-tab="login">Entrar</button>
+        <button type="button" class="auth-tab" data-tab="cadastro">Cadastrar</button>
+        <button type="button" class="auth-tab" data-tab="recuperar">Recuperar</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form class="auth-form active" id="formLogin" novalidate>
+        <div class="auth-demo">
+          🔑 Login padrão: <strong>admin@eventhub.com</strong> / <strong>123</strong>
+        </div>
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="username" required>
+          <span class="error-msg">E-mail inválido.</span>
+        </div>
+        <div class="form-group">
+          <label for="loginSenha">Senha</label>
+          <input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password" required>
+          <span class="error-msg">Senha obrigatória.</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">🔓 Entrar</button>
+      </form>
+
+      <!-- CADASTRO -->
+      <form class="auth-form" id="formCadastro" novalidate>
+        <div class="form-group">
+          <label for="cadEmail">E-mail</label>
+          <input type="email" id="cadEmail" placeholder="seu@email.com" autocomplete="email" required>
+          <span class="error-msg">E-mail inválido.</span>
+        </div>
+        <div class="form-group">
+          <label for="cadSenha">Senha</label>
+          <input type="password" id="cadSenha" placeholder="Mínimo 4 caracteres" autocomplete="new-password" required>
+          <span class="error-msg">Senha deve ter no mínimo 4 caracteres.</span>
+        </div>
+        <div class="form-group">
+          <label for="cadSenha2">Confirmar senha</label>
+          <input type="password" id="cadSenha2" placeholder="Repita a senha" autocomplete="new-password" required>
+          <span class="error-msg">As senhas não coincidem.</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">✨ Criar conta</button>
+      </form>
+
+      <!-- RECUPERAR SENHA -->
+      <form class="auth-form" id="formRecuperar" novalidate>
+        <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.2rem;text-align:center;">
+          Informe seu e-mail cadastrado e enviaremos instruções para redefinir sua senha.
+        </p>
+        <div class="form-group">
+          <label for="recEmail">E-mail cadastrado</label>
+          <input type="email" id="recEmail" placeholder="seu@email.com" required>
+          <span class="error-msg">E-mail inválido.</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">📧 Enviar instruções</button>
+      </form>
+
+      <div class="auth-info">
+        <a href="index.html">← Voltar para a página inicial</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/validacao.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    /* ============================================================
+       CONTROLE DE ABAS
+       ============================================================ */
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = {
+      login: document.getElementById('formLogin'),
+      cadastro: document.getElementById('formCadastro'),
+      recuperar: document.getElementById('formRecuperar')
+    };
+    const titulos = {
+      login: ['Bem-vindo de volta', 'Acesse sua conta para gerenciar eventos'],
+      cadastro: ['Crie sua conta', 'Cadastre-se para gerenciar eventos'],
+      recuperar: ['Recuperar senha', 'Receba instruções para redefinir sua senha']
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tipo = tab.dataset.tab;
+        Object.values(forms).forEach(f => f.classList.remove('active'));
+        forms[tipo].classList.add('active');
+        document.getElementById('authTitle').textContent = titulos[tipo][0];
+        document.getElementById('authSubtitle').textContent = titulos[tipo][1];
+        document.getElementById('authTabs').style.display = 'flex';
+      });
+    });
+
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+    forms.login.addEventListener('submit', e => {
+      e.preventDefault();
+      Validacao.limparTodos(forms.login);
+
+      const email = document.getElementById('loginEmail');
+      const senha = document.getElementById('loginSenha');
+
+      let ok = true;
+      if (!Validacao.emailValido(email.value.trim())) {
+        Validacao.aplicarErro(email, 'E-mail inválido.'); ok = false;
+      }
+      if (!senha.value) {
+        Validacao.aplicarErro(senha, 'Senha obrigatória.'); ok = false;
+      }
+      if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
+
+      const resultado = Auth.login(email.value.trim(), senha.value);
+      if (!resultado.sucesso) {
+        mostrarToast(resultado.mensagem, 'error', '❌');
+        Validacao.aplicarErro(senha, resultado.mensagem);
+        return;
+      }
+
+            mostrarToast(`Bem-vindo, ${resultado.usuario.nome || resultado.usuario.email}!`, 'success', '✅');
+      setTimeout(() => {
+        const redirect = new URLSearchParams(location.search).get('redirect');
+        // Redireciona conforme o perfil
+        if (redirect) {
+          window.location.href = redirect;
+        } else if (resultado.usuario.tipo === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'participantes.html';
+        }
+      }, 800);
+    });
+
+    /* ============================================================
+       CADASTRO
+       ============================================================ */
+    forms.cadastro.addEventListener('submit', e => {
+      e.preventDefault();
+      Validacao.limparTodos(forms.cadastro);
+
+      const email = document.getElementById('cadEmail');
+      const senha = document.getElementById('cadSenha');
+      const senha2 = document.getElementById('cadSenha2');
+
+      let ok = true;
+      if (!Validacao.emailValido(email.value.trim())) {
+        Validacao.aplicarErro(email, 'E-mail inválido.'); ok = false;
+      }
+      if (senha.value.length < 4) {
+        Validacao.aplicarErro(senha, 'Mínimo 4 caracteres.'); ok = false;
+      }
+      if (senha.value !== senha2.value) {
+        Validacao.aplicarErro(senha2, 'As senhas não coincidem.'); ok = false;
+      }
+      if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
+
+      const resultado = Auth.cadastrar(email.value.trim(), senha.value);
+      if (!resultado.sucesso) {
+        mostrarToast(resultado.mensagem, 'error', '❌');
+        Validacao.aplicarErro(email, resultado.mensagem);
+        return;
+      }
+
+      mostrarToast('Conta criada com sucesso! Faça login.', 'success', '🎉');
+      forms.cadastro.reset();
+      setTimeout(() => {
+        document.querySelector('[data-tab="login"]').click();
+        document.getElementById('loginEmail').value = email.value.trim();
+        document.getElementById('loginSenha').focus();
+      }, 1200);
+    });
+
+    /* ============================================================
+       RECUPERAR SENHA
+       ============================================================ */
+    forms.recuperar.addEventListener('submit', e => {
+      e.preventDefault();
+      Validacao.limparTodos(forms.recuperar);
+
+      const email = document.getElementById('recEmail');
+      if (!Validacao.emailValido(email.value.trim())) {
+        Validacao.aplicarErro(email, 'E-mail inválido.');
+        mostrarToast('Corrija o e-mail.', 'error', '⚠️');
+        return;
+      }
+
+      const resultado = Auth.recuperarSenha(email.value.trim());
+      if (!resultado.sucesso) {
+        mostrarToast(resultado.mensagem, 'error', '❌');
+        return;
+      }
+      mostrarToast(resultado.mensagem, 'success', '📧');
+      forms.recuperar.reset();
+    });
+
+    /* ============================================================
+       LIMPAR ERROS AO DIGITAR
+       ============================================================ */
+    document.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => Validacao.limparErro(inp));
+    });
+  </script>
+</body>
+</html>

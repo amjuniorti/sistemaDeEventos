@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eventos — EventHub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/eventos.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="eventos.html" class="active">Eventos</a></li>
+          <li><a href="admin.html">Admin</a></li>
+          <li><a href="participantes.html">Participantes</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>Todos os <span>Eventos</span></h1>
+      <p>Explore nossa lista completa e encontre o evento ideal para você</p>
+    </div>
+  </section>
+
+  <section class="filters-section">
+    <div class="container">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="searchInput">🔍 Pesquisar por nome</label>
+          <input type="text" id="searchInput" placeholder="Digite o nome do evento...">
+        </div>
+        <div class="filter-group">
+          <label for="categoryFilter">📂 Categoria</label>
+          <select id="categoryFilter"><option value="">Todas</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="dateFilter">📅 Data</label>
+          <input type="date" id="dateFilter">
+        </div>
+        <div class="filter-group">
+          <label for="sortFilter">↕️ Ordenar</label>
+          <select id="sortFilter">
+            <option value="date-asc">Data (próxima)</option>
+            <option value="date-desc">Data (distante)</option>
+            <option value="name-asc">Nome A-Z</option>
+            <option value="vagas-desc">Mais vagas</option>
+          </select>
+        </div>
+        <button class="btn-clear" id="clearFilters">✕ Limpar</button>
+      </div>
+      <div class="active-filters" id="activeFilters"></div>
+    </div>
+  </section>
+
+  <section class="events-section">
+    <div class="container">
+      <div class="results-bar">
+        <p class="results-count"><strong id="resultsCount">0</strong> evento(s) encontrado(s)</p>
+      </div>
+      <div class="events-grid" id="eventsGrid"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/eventos.js"></script>
+</body>
+</html>
