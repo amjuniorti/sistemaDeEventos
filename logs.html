@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Atividades — EventHub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="eventos.html">Eventos</a></li>
+          <li id="adminLink"><a href="admin.html" class="active">Admin</a></li>
+          <li><a href="participantes.html">Participantes</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+          <li id="userMenu"></li>
+        </ul>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-header" style="background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);">
+    <div class="container">
+      <h1>Registro de <span>Atividades</span></h1>
+      <p>Histórico completo de ações no sistema (Acesso Restrito)</p>
+    </div>
+  </section>
+
+  <section class="dashboard">
+    <div class="container">
+      
+      <div class="admin-toolbar">
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; flex:1;">
+          <input type="text" class="admin-search" id="buscaLog" placeholder="🔍 Pesquisar por e-mail ou ação...">
+          <select id="filtroAcao" class="admin-search" style="max-width: 200px;">
+            <option value="">Todas as ações</option>
+            <option value="Login">Login</option>
+            <option value="Logout">Logout</option>
+            <option value="Cadastrar Evento">Cadastrar Evento</option>
+            <option value="Editar Evento">Editar Evento</option>
+            <option value="Excluir Evento">Excluir Evento</option>
+            <option value="Nova Inscrição">Nova Inscrição</option>
+          </select>
+        </div>
+        <button class="btn btn-danger" id="btnLimparLogs">🗑 Limpar Histórico</button>
+      </div>
+
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Data / Hora</th>
+              <th>Usuário</th>
+              <th>Tipo</th>
+              <th>Ação</th>
+              <th>Detalhes</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaLogs"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 🔒 ACESSO RESTRITO: Apenas o admin principal!
+      const sessao = Auth.getSessao();
+      if (!sessao || sessao.tipo !== 'admin' || sessao.email !== 'admin@eventhub.com') {
+        alert('Acesso restrito ao Administrador Principal.');
+        window.location.href = 'acesso-negado.html';
+        return;
+      }
+
+      const buscaLog = document.getElementById('buscaLog');
+      const filtroAcao = document.getElementById('filtroAcao');
+      const tabelaLogs = document.getElementById('tabelaLogs');
+
+      function renderLogs() {
+        const termo = buscaLog.value.toLowerCase();
+        const acaoFiltro = filtroAcao.value;
+
+        let logs = JSON.parse(localStorage.getItem('eventhub_logs') || '[]');
+
+        // Filtros
+        logs = logs.filter(log => {
+          const matchTermo = log.autor.toLowerCase().includes(termo) || log.acao.toLowerCase().includes(termo) || log.detalhes.toLowerCase().includes(termo);
+          const matchAcao = !acaoFiltro || log.acao === acaoFiltro;
+          return matchTermo && matchAcao;
+        });
+
+        if (!logs.length) {
+          tabelaLogs.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--gray-600);">Nenhum registro encontrado.</td></tr>`;
+          return;
+        }
+
+        tabelaLogs.innerHTML = logs.map(log => {
+          const dataFmt = new Date(log.data).toLocaleString('pt-BR');
+          const badgeTipo = log.tipo === 'admin' ? '<span class="badge" style="background:#8e44ad;color:white;">Admin</span>' : log.tipo === 'participante' ? '<span class="badge info">Participante</span>' : '<span class="badge">Anônimo</span>';
+          
+          // Cor diferente para ações destrutivas
+          const corAcao = log.acao.includes('Excluir') ? 'color:var(--danger);font-weight:bold;' : 'color:var(--dark);';
+
+          return `
+            <tr>
+              <td style="white-space:nowrap; font-size:0.85rem;">${dataFmt}</td>
+              <td>${log.autor}<br><small>${badgeTipo}</small></td>
+              <td style="${corAcao}">${log.acao}</td>
+              <td style="font-size:0.85rem;">${log.detalhes}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      buscaLog.addEventListener('input', renderLogs);
+      filtroAcao.addEventListener('change', renderLogs);
+
+      document.getElementById('btnLimparLogs').addEventListener('click', () => {
+        if (!confirm('Apagar todo o histórico de atividades? Isso não pode ser desfeito.')) return;
+        localStorage.setItem('eventhub_logs', '[]');
+        registrarLog('Limpar Logs', 'O admin principal apagou todo o histórico.');
+        renderLogs();
+      });
+
+      renderLogs();
+    });
+  </script>
+</body>
+</html>

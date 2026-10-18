@@ -208,3 +208,131 @@ footer { background: var(--dark); color: white; padding: 3rem 0 1.5rem; margin-t
   .form-row { grid-template-columns: 1fr; }
   .toast-container { left: 1rem; right: 1rem; max-width: none; }
 }
+
+/* ============================================================
+   PADRONIZAÇÃO GLOBAL DE IMAGENS REAIS
+   ============================================================ */
+.img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.event-card:hover .img-cover,
+.category-card:hover .img-cover {
+  transform: scale(1.08);
+}
+
+/* Botão retangular */
+.nav-menu a.btn-login,
+.nav-menu #logoutBtn {
+  background: var(--primary);
+  padding: 0.55rem 1.3rem;
+  border-radius: 0px !important;
+  color: white !important;
+  font-weight: 600;
+  transition: var(--transition);
+  border: 2px solid var(--primary) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-menu a.btn-login:hover,
+.nav-menu #logoutBtn:hover {
+  background: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  color: white !important;
+}
+
+/* Ajuste dos containers de imagem */
+.event-image-photo {
+  position: relative;
+  overflow: hidden;
+  height: 200px;
+  padding: 0;
+  background: var(--gray-200);
+}
+
+.event-image-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+}
+
+.event-image-photo .event-category-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  background: rgba(26, 26, 46, 0.92);
+}
+
+.category-photo {
+  height: 120px;
+  overflow: hidden;
+  position: relative;
+  background: var(--gray-200);
+}
+
+.event-detail-hero-photo {
+  position: relative;
+  overflow: hidden;
+  height: 320px;
+  padding: 0;
+  background: var(--gray-200);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+
+.event-detail-hero-photo .event-category-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 2;
+}
+
+/* ============================================================
+   GLASSMORPHISM (Efeito de Vidro)
+   ============================================================ */
+.auth-card, .modal {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.modal-hero { border-radius: 16px 16px 0 0; }
+
+/* ============================================================
+   MICRO-INTERAÇÕES (Efeito de aperto nos botões)
+   ============================================================ */
+button, .btn {
+  transition: transform 0.1s ease, background 0.3s;
+}
+button:active, .btn:active {
+  transform: scale(0.96) !important;
+}
+
+/* ============================================================
+   SKELETON LOADING (Tela de carregamento dos cards)
+   ============================================================ */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 6px;
+}
+
+.skeleton-text { height: 16px; margin-bottom: 8px; width: 100%; }
+.skeleton-title { height: 24px; margin-bottom: 12px; width: 70%; }
+.skeleton-image { height: 180px; width: 100%; border-radius: 10px 10px 0 0; }

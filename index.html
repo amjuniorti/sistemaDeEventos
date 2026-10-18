@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,14 +13,14 @@
       <a href="index.html" class="logo">Event<span>Hub</span></a>
       <nav>
         <ul class="nav-menu" id="navMenu">
-  <li><a href="index.html" class="active">Início</a></li>
-  <li><a href="eventos.html">Eventos</a></li>
-  <li><a href="admin.html">Admin</a></li>
-  <li><a href="participantes.html">Participantes</a></li>
-  <li><a href="sobre.html">Sobre</a></li>
-  <li><a href="contato.html">Contato</a></li>
-  <li><a href="login.html" class="btn-login">Entrar</a></li>
-</ul>
+          <li><a href="index.html" class="active">Início</a></li>
+          <li><a href="eventos.html">Eventos</a></li>
+          <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
+          <li><a href="participantes.html">Participantes</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+          <li id="userMenu"><a href="login.html" class="btn-login">Entrar</a></li>
+        </ul>
       </nav>
       <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
     </div>
@@ -32,12 +31,9 @@
       <h1>Descubra os melhores <span>eventos</span> perto de você</h1>
       <p>Shows, workshops, conferências e muito mais. Sua próxima experiência inesquecível está aqui.</p>
       <div class="hero-actions">
-  <a href="eventos.html" class="btn btn-primary">Explorar Eventos</a>
-  <a href="cadastro-evento.html" id="btnCriarEvento" class="btn btn-outline"
-     style="background:transparent;color:white;border-color:white;display:none;">
-    Criar Evento
-  </a>
-</div>
+        <a href="eventos.html" class="btn btn-primary">Explorar Eventos</a>
+        <a href="cadastro-evento.html" id="btnCriarEvento" class="btn btn-outline" style="background:transparent;color:white;border-color:white;display:none;">Criar Evento</a>
+      </div>
     </div>
   </section>
 
@@ -64,123 +60,115 @@
       <div class="categories-grid" id="categoriasGrid"></div>
     </div>
   </section>
+  <section style="padding: 4rem 0; background: white;">
+    <div class="container">
+      <h2 class="section-title">O que dizem sobre nós</h2>
+      <p class="section-subtitle">Histórias de quem já participou</p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div style="background: var(--gray-50); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--primary);">
+          <p style="font-style: italic; color: var(--gray-700); margin-bottom: 1rem;">"O React Summit mudou minha carreira. As palestras e o networking foram incríveis. Já estou esperando a próxima edição!"</p>
+          <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">LM</div>
+            <div><strong>Lucas Martins</strong><br><small style="color: var(--gray-500);">Dev Front-end</small></div>
+          </div>
+        </div>
+
+        <div style="background: var(--gray-50); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--info);">
+          <p style="font-style: italic; color: var(--gray-700); margin-bottom: 1rem;">"A plataforma é super fácil de usar. Consegui me inscrever no Hackathon de IA em menos de 2 minutos. Recomendo para todo mundo!"</p>
+          <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--info); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">AS</div>
+            <div><strong>Amanda Souza</strong><br><small style="color: var(--gray-500);">Data Scientist</small></div>
+          </div>
+        </div>
+
+        <div style="background: var(--gray-50); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--success);">
+          <p style="font-style: italic; color: var(--gray-700); margin-bottom: 1rem;">"Como organizador, o painel de admin me ajuda demais a controlar as inscrições e vagas. O EventHub facilitou muito minha vida."</p>
+          <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--success); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">RC</div>
+            <div><strong>Rafael Costa</strong><br><small style="color: var(--gray-500);">Organizador de Eventos</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <footer>
     <div class="container">
-      <div class="footer-grid">
-        <div class="footer-col">
-          <h4>EventHub</h4>
-          <p>Sua plataforma completa para descobrir e participar dos melhores eventos do país.</p>
-        </div>
-        <div class="footer-col">
-          <h4>Navegação</h4>
-          <ul>
-            <li><a href="index.html">Início</a></li>
-            <li><a href="eventos.html">Eventos</a></li>
-            <li><a href="admin.html">Admin</a></li>
-            <li><a href="participantes.html">Participantes</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Institucional</h4>
-          <ul>
-            <li><a href="sobre.html">Sobre</a></li>
-            <li><a href="contato.html">Contato</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Contato</h4>
-          <p>📧 contato@eventhub.com.br</p>
-          <p>📞 (11) 4000-1234</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
-      </div>
+      <div class="footer-bottom"><p>&copy; 2025 EventHub. Todos os direitos reservados.</p></div>
     </div>
   </footer>
 
   <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
   <script>
-    function cardHome(e) {
-      return `
-        <article class="event-card">
-          <div class="event-image" style="background:${e.cor}">
-            <span class="event-category-badge">${e.categoria}</span>
-            <span>${e.imagem}</span>
-          </div>
-          <div class="event-info">
-            <h3>${e.nome}</h3>
-            <ul class="event-meta-list">
-              <li><span class="icon">📅</span> ${formatarData(e.data)}</li>
-              <li><span class="icon">🕒</span> ${e.horario}</li>
-              <li><span class="icon">📍</span> ${e.local}</li>
-            </ul>
-            <p class="event-description">${e.descricao}</p>
-            <div class="event-footer">
-              <span class="badge ${e.vagas <= 10 ? 'full' : e.vagas <= 50 ? 'low' : ''}">${e.vagas} vagas</span>
-              <a href="evento.html?id=${e.id}" class="btn btn-primary btn-sm">Ver detalhes</a>
-            </div>
-          </div>
-        </article>`;
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        let eventos = DB.getEventos();
+        if (!eventos || eventos.length === 0) { localStorage.removeItem('eventhub_eventos'); DB.init(); eventos = DB.getEventos(); }
 
-    const eventos = DB.getEventos();
-    document.getElementById('destaques').innerHTML = eventos.slice(0, 3).map(cardHome).join('');
-    document.getElementById('proximos').innerHTML = eventos.slice(3, 6).map(cardHome).join('');
-
-    const categorias = [...new Set(eventos.map(e => e.categoria))];
-    document.getElementById('categoriasGrid').innerHTML = categorias.map(cat => {
-      const count = eventos.filter(e => e.categoria === cat).length;
-      const icones = {
-        'Desenvolvimento Web': '💻', 'Inteligência Artificial': '🤖',
-        'Programação': '⚡', 'Redes': '🌐',
-        'Banco de Dados': '🗄️', 'Tecnologia': '☁️'
-      };
-      return `<a href="eventos.html?categoria=${encodeURIComponent(cat)}" class="category-card">
-        <span class="category-icon">${icones[cat] || '📌'}</span>
-        <h3>${cat}</h3>
-        <span>${count} eventos</span>
-      </a>`;
-    }).join('');
-  </script>
-  <script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>
-  // Troca "Entrar" por "Sair" se houver sessão
-  (function () {
-    const sessao = Auth.getSessao();
-    if (!sessao) return;
-    const btn = document.querySelector('.btn-login');
-    if (btn) {
-      btn.textContent = `👤 ${sessao.email.split('@')[0]} (Sair)`;
-      btn.href = '#';
-      btn.addEventListener('click', e => {
-        e.preventDefault();
-        if (confirm('Deseja sair?')) {
-          Auth.logout();
-          location.reload();
+        function cardHome(e) {
+          const imgUrl = obterImagemEvento(e);
+          const vagasClass = e.vagas <= 10 ? 'full' : e.vagas <= 50 ? 'low' : '';
+          return `
+            <article class="event-card">
+              <div class="event-image event-image-photo">
+                <img src="${imgUrl}" class="img-cover" alt="${e.nome}" loading="lazy" onerror="this.src='${IMAGEM_FALLBACK}'">
+                <span class="event-category-badge">${e.categoria}</span>
+              </div>
+              <div class="event-info">
+                <h3>${e.nome}</h3>
+                <ul class="event-meta-list">
+                  <li><span class="icon">📅</span> ${formatarData(e.data)}</li>
+                  <li><span class="icon">🕒</span> ${e.horario}</li>
+                  <li><span class="icon">📍</span> ${e.local}</li>
+                </ul>
+                <p class="event-description">${e.descricao}</p>
+                <div class="event-footer">
+                  <span class="badge ${vagasClass}">${e.vagas} vagas</span>
+                  <a href="evento.html?id=${e.id}" class="btn btn-primary btn-sm">Ver detalhes</a>
+                </div>
+              </div>
+            </article>`;
         }
-      });
-    }
-  })();
-</script>
-<script>
-  /* restante do script existente da home */
-</script>
-<script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>
-  /* Mostra "Criar Evento" apenas para admin logado */
-  (function () {
-    const sessao = Auth.getSessao();
-    if (sessao && sessao.tipo === 'admin') {
-      document.getElementById('btnCriarEvento').style.display = '';
-    }
-  })();
-</script>
-<script>
-  /* ... restante do script da home (destaques, próximos, categorias) ... */
-</script>
+
+                // Skeleton Loading
+        const skeletonHTML = `
+          <article class="event-card" style="pointer-events:none;">
+            <div class="skeleton skeleton-image"></div>
+            <div class="event-info">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text" style="width:80%"></div>
+              <div class="skeleton skeleton-text" style="width:60%"></div>
+              <div class="skeleton skeleton-text" style="width:90%; margin-top:15px;"></div>
+            </div>
+          </article>`;
+        document.getElementById('destaques').innerHTML = skeletonHTML + skeletonHTML + skeletonHTML;
+
+        // Depois de 800ms, substitui pelo conteúdo real (simulando carregamento)
+        setTimeout(() => {
+          document.getElementById('destaques').innerHTML = eventos.slice(0, 3).map(cardHome).join('');
+          document.getElementById('proximos').innerHTML = eventos.slice(3, 6).map(cardHome).join('');
+        }, 800);
+
+        document.getElementById('destaques').innerHTML = eventos.slice(0, 3).map(cardHome).join('');
+        document.getElementById('proximos').innerHTML = eventos.slice(3, 6).map(cardHome).join('');
+
+        const categorias = [...new Set(eventos.map(e => e.categoria))];
+        document.getElementById('categoriasGrid').innerHTML = categorias.map(cat => {
+          const count = eventos.filter(e => e.categoria === cat).length;
+          const img = IMAGENS_CATEGORIA[cat] || IMAGEM_FALLBACK;
+          return `
+            <a href="eventos.html?categoria=${encodeURIComponent(cat)}" class="category-card category-card-photo" style="padding:0;overflow:hidden;">
+              <div class="category-photo"><img src="${img}" class="img-cover" alt="${cat}" onerror="this.src='${IMAGEM_FALLBACK}'"></div>
+              <div style="padding:1rem;text-align:center;"><h3>${cat}</h3><span>${count} evento(s)</span></div>
+            </a>`;
+        }).join('');
+      } catch (erro) {
+        console.error(erro);
+      }
+    });
+  </script>
 </body>
 </html>

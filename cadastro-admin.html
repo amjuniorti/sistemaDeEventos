@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Novo Admin — EventHub</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="eventos.html">Eventos</a></li>
+          <li id="adminLink"><a href="admin.html" class="active">Admin</a></li>
+          <li><a href="participantes.html">Participantes</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+          <li id="userMenu"></li>
+        </ul>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>Novo <span>Administrador</span></h1>
+      <p>Crie credenciais de acesso total para um novo membro da equipe</p>
+    </div>
+  </section>
+
+  <section style="padding:3rem 0; flex:1;">
+    <div class="container" style="max-width:500px;">
+      <form class="form-card" id="formNovoAdmin" novalidate>
+        <div style="margin-bottom:1.5rem; padding:1rem; background:#fff3e0; border-left:4px solid var(--warning); border-radius:6px; color:#856404; font-size:0.9rem;">
+          ⚠️ <strong>Atenção:</strong> A pessoa cadastrada aqui terá acesso total ao sistema, podendo criar, editar e excluir eventos e participantes.
+        </div>
+
+        <div class="form-group">
+          <label for="adminEmail">E-mail do novo Admin <span class="req">*</span></label>
+          <input type="email" id="adminEmail" placeholder="novo.admin@eventhub.com" required>
+          <span class="error-msg">Informe um e-mail válido.</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="adminSenha">Senha de Acesso <span class="req">*</span></label>
+          <input type="password" id="adminSenha" placeholder="Mínimo 4 caracteres" required>
+          <span class="error-msg">Senha deve ter no mínimo 4 caracteres.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="adminSenha2">Confirmar Senha <span class="req">*</span></label>
+          <input type="password" id="adminSenha2" placeholder="Repita a senha" required>
+          <span class="error-msg">As senhas não coincidem.</span>
+        </div>
+
+        <div style="display:flex; gap:1rem; margin-top:2rem;">
+          <a href="admin.html" class="btn btn-outline" style="flex:1;">Cancelar</a>
+          <button type="submit" class="btn btn-primary" style="flex:2;">Cadastrar Admin</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/validacao.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Bloqueia a página se não for admin
+      if (!Auth.proteger(true)) return;
+
+      const form = document.getElementById('formNovoAdmin');
+      
+      form.querySelectorAll('input').forEach(c =>
+        c.addEventListener('input', () => Validacao.limparErro(c))
+      );
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        Validacao.limparTodos(form);
+
+        const email = document.getElementById('adminEmail');
+        const senha = document.getElementById('adminSenha');
+        const senha2 = document.getElementById('adminSenha2');
+
+        let ok = true;
+        if (!Validacao.emailValido(email.value.trim())) {
+          Validacao.aplicarErro(email, 'E-mail inválido.'); ok = false;
+        }
+        if (senha.value.length < 4) {
+          Validacao.aplicarErro(senha, 'Mínimo 4 caracteres.'); ok = false;
+        }
+        if (senha.value !== senha2.value) {
+          Validacao.aplicarErro(senha2, 'As senhas não coincidem.'); ok = false;
+        }
+
+        if (!ok) {
+          mostrarToast('Corrija os campos.', 'error', '⚠️');
+          return;
+        }
+
+        // Chama a função de criar admin que adicionamos no auth.js
+        const resultado = Auth.cadastrarAdmin(email.value.trim(), senha.value);
+        
+        if (!resultado.sucesso) {
+          mostrarToast(resultado.mensagem, 'error', '❌');
+          Validacao.aplicarErro(email, resultado.mensagem);
+          return;
+        }
+
+        mostrarToast(resultado.mensagem, 'success', '🎉');
+        form.reset();
+        
+        // Volta para o painel após 2 segundos
+        setTimeout(() => {
+          window.location.href = 'admin.html';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

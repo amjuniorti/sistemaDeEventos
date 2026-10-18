@@ -6,24 +6,6 @@
   <title>Detalhes do Evento — EventHub</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/eventos.css">
-  <style>
-    /* Fallback visual caso o JS não carregue */
-    .loading-placeholder {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--gray-600);
-    }
-    .loading-placeholder .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid var(--gray-200);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 1rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
 </head>
 <body>
   <header class="site-header">
@@ -37,7 +19,7 @@
           <li><a href="participantes.html">Participantes</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
-          <li id="userMenu"></li>
+          <li id="userMenu"><a href="login.html" class="btn-login">Entrar</a></li>
         </ul>
       </nav>
       <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
@@ -45,202 +27,89 @@
   </header>
 
   <section class="event-detail">
-    <div class="container">
-      <!-- Placeholder inicial (mostra enquanto o JS carrega) -->
-      <div id="detalheEvento">
-        <div class="loading-placeholder">
-          <div class="spinner"></div>
-          <p>Carregando evento...</p>
-        </div>
-      </div>
+    <div class="container" id="detalheEvento">
+      <!-- Renderizado via JS -->
     </div>
   </section>
 
   <footer>
     <div class="container">
-      <div class="footer-bottom">
-        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
-      </div>
+      <div class="footer-bottom"><p>&copy; 2025 EventHub. Todos os direitos reservados.</p></div>
     </div>
   </footer>
 
-  <!-- ===== SCRIPTS NA ORDEM CORRETA ===== -->
   <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    /* ============================================================
-       PÁGINA DE DETALHES DO EVENTO
-       ============================================================ */
-    (function () {
+    document.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('detalheEvento');
-      if (!container) return;
+      const id = parseInt(new URLSearchParams(location.search).get('id'));
 
-      /* ---------- 1) Menu do usuário ---------- */
-      try {
-        const sessao = Auth.getSessao();
-        if (sessao) {
-          const li = document.getElementById('userMenu');
-          if (li) {
-            li.innerHTML = `
-              <a href="#" id="logoutBtn" class="btn-login" title="Sair"
-                 style="display:flex;align-items:center;gap:0.5rem;background:transparent;border:1px solid var(--primary);">
-                👤 ${sessao.nome || sessao.email.split('@')[0]} ✕
-              </a>`;
-            document.getElementById('logoutBtn').addEventListener('click', ev => {
-              ev.preventDefault();
-              if (confirm('Deseja sair da conta?')) {
-                Auth.logout();
-                location.href = 'login.html';
-              }
-            });
-          }
-          if (sessao.tipo === 'admin') {
-            const adminLink = document.getElementById('adminLink');
-            if (adminLink) adminLink.style.display = '';
-          }
-        }
-      } catch (err) {
-        console.warn('Sessão indisponível:', err);
-      }
-
-      /* ---------- 2) Lê o ID da URL ---------- */
-      const params = new URLSearchParams(location.search);
-      const idParam = params.get('id');
-      const id = parseInt(idParam);
-
-      if (!idParam || isNaN(id)) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <span class="icon">🔍</span>
-            <h3>Nenhum evento selecionado</h3>
-            <p>Selecione um evento na lista para ver os detalhes.</p>
-            <a href="eventos.html" class="btn btn-primary" style="margin-top:1rem;">← Voltar aos eventos</a>
-          </div>`;
+      if (!id) {
+        container.innerHTML = `<div class="empty-state" style="text-align:center;"><h3>Evento não encontrado.</h3><a href="eventos.html" class="btn btn-primary" style="margin-top:1rem;">Voltar</a></div>`;
         return;
       }
 
-      /* ---------- 3) Busca o evento ---------- */
-      let evento;
-      try {
-        evento = DB.getEventos().find(e => e.id === id);
-      } catch (err) {
-        console.error('Erro ao buscar evento:', err);
-      }
-
+      const evento = DB.getEventos().find(e => e.id === id);
       if (!evento) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <span class="icon">❌</span>
-            <h3>Evento não encontrado</h3>
-            <p>O evento que você procura não existe ou foi removido.</p>
-            <a href="eventos.html" class="btn btn-primary" style="margin-top:1rem;">← Voltar aos eventos</a>
-          </div>`;
+        container.innerHTML = `<div class="empty-state" style="text-align:center;"><h3>Evento não existe.</h3><a href="eventos.html" class="btn btn-primary" style="margin-top:1rem;">Voltar</a></div>`;
         return;
       }
 
-      /* ---------- 4) Calcula estado ---------- */
+      const imgUrl = obterImagemEvento(evento);
       const inscritos = DB.getParticipantes().filter(p => p.eventoId === evento.id).length;
       const vagasRestantes = evento.vagas - inscritos;
       const lotado = vagasRestantes <= 0;
-      const prog = Array.isArray(evento.programacao) ? evento.programacao : [];
-
+      
       const sessao = Auth.getSessao();
-      const jaInscrito = sessao && sessao.tipo === 'participante' &&
-        DB.getParticipantes().some(p =>
-          p.eventoId === evento.id && p.email.toLowerCase() === sessao.email.toLowerCase()
-        );
+      const jaInscrito = sessao && sessao.tipo === 'participante' && DB.getParticipantes().some(p => p.eventoId === evento.id && p.email.toLowerCase() === sessao.email.toLowerCase());
 
-      /* ---------- 5) Botão de inscrição ---------- */
-      let botaoInscricao;
+      let botao = '';
       if (jaInscrito) {
-        botaoInscricao = `
-          <span class="badge" style="margin-bottom:1rem; display:inline-flex;">✅ Você já está inscrito</span>
-          <a href="participantes.html" class="btn btn-outline" style="width:100%;">Ver minhas inscrições</a>`;
+        botao = `<span class="badge" style="display:block;text-align:center;margin-bottom:1rem;">✅ Você já está inscrito</span><a href="participantes.html" class="btn btn-outline" style="width:100%;">Ver minhas inscrições</a>`;
       } else if (lotado) {
-        botaoInscricao = `
-          <span class="badge full" style="margin-bottom:1rem; display:inline-flex;">EVENTO LOTADO</span>
-          <button class="btn btn-primary" style="width:100%;" disabled>Esgotado</button>`;
+        botao = `<span class="badge full" style="display:block;text-align:center;margin-bottom:1rem;">EVENTO LOTADO</span><button class="btn btn-primary" style="width:100%;" disabled>Esgotado</button>`;
+      } else if (!sessao || sessao.tipo !== 'participante') {
+        // Se não estiver logado como participante, pede para fazer login/cadastro
+        botao = `
+          <p style="font-size:0.85rem; color:var(--gray-600); text-align:center; margin-bottom:1rem;">Faça login para se inscrever</p>
+          <a href="login.html?redirect=inscricao.html?eventoId=${evento.id}" class="btn btn-primary" style="width:100%; margin-bottom:0.5rem;">🔒 Entrar / Cadastrar</a>
+        `;
       } else {
-        botaoInscricao = `
-          <a href="inscricao.html?eventoId=${evento.id}" class="btn btn-primary" style="width:100%;">🎟️ Inscrever-se</a>`;
+        botao = `<a href="inscricao.html?eventoId=${evento.id}" class="btn btn-primary" style="width:100%;">🎟️ Inscrever-se</a>`;
       }
 
-      /* ---------- 6) Programa (fallback) ---------- */
-      const programacaoHTML = prog.length
-        ? prog.map(p => `
-            <div class="programacao-item">
-              <span class="time">${p.hora}</span>
-              <span>${p.titulo}</span>
-            </div>`).join('')
-        : '<p style="color:var(--gray-600);">Programação em breve.</p>';
-
-      /* ---------- 7) Renderiza ---------- */
       container.innerHTML = `
         <div class="event-detail-grid">
           <div class="event-detail-content">
-            <div class="event-detail-hero" style="background:${evento.cor || 'linear-gradient(135deg,#1a1a2e,#0f3460)'}">
-              <span>${evento.imagem || '📌'}</span>
+            <div class="event-detail-hero event-detail-hero-photo">
+              <img src="${imgUrl}" class="img-cover" alt="${evento.nome}" onerror="this.src='${IMAGEM_FALLBACK}'">
+              <span class="event-category-badge">${evento.categoria}</span>
             </div>
             <h1>${evento.nome}</h1>
-            <p style="color:var(--gray-600); margin-bottom:1.5rem; line-height:1.7;">${evento.descricao}</p>
-
+            <p style="color:var(--gray-600); margin-bottom:1.5rem;">${evento.descricao}</p>
+            
             <div class="event-detail-meta">
-              <div class="meta-item">
-                <span class="icon">📅</span>
-                <div><div class="label">Data</div><div class="value">${formatarData(evento.data)}</div></div>
-              </div>
-              <div class="meta-item">
-                <span class="icon">🕒</span>
-                <div><div class="label">Horário</div><div class="value">${evento.horario}</div></div>
-              </div>
-              <div class="meta-item">
-                <span class="icon">📍</span>
-                <div><div class="label">Local</div><div class="value">${evento.local}</div></div>
-              </div>
-              <div class="meta-item">
-                <span class="icon">🏷️</span>
-                <div><div class="label">Categoria</div><div class="value">${evento.categoria}</div></div>
-              </div>
-              <div class="meta-item">
-                <span class="icon">👤</span>
-                <div><div class="label">Responsável</div><div class="value">${evento.responsavel || '-'}</div></div>
-              </div>
-              <div class="meta-item">
-                <span class="icon">👥</span>
-                <div><div class="label">Vagas</div><div class="value">${evento.vagas}</div></div>
-              </div>
-            </div>
-
-            <div class="programacao">
-              <h3>📋 Programação</h3>
-              ${programacaoHTML}
+              <div class="meta-item"><span class="icon">📅</span><div><div class="label">Data</div><div class="value">${formatarData(evento.data)}</div></div></div>
+              <div class="meta-item"><span class="icon">🕒</span><div><div class="label">Horário</div><div class="value">${evento.horario}</div></div></div>
+              <div class="meta-item"><span class="icon">📍</span><div><div class="label">Local</div><div class="value">${evento.local}</div></div></div>
+              <div class="meta-item"><span class="icon">👤</span><div><div class="label">Responsável</div><div class="value">${evento.responsavel || '-'}</div></div></div>
             </div>
           </div>
-
+          
           <aside>
-            <div class="sidebar-card">
+            <div class="sidebar-card" style="background:white; padding:1.5rem; border-radius:8px;">
               <h3>Inscrição</h3>
-              <div class="vagas-info">
-                <div class="count">${lotado ? '0' : vagasRestantes}</div>
-                <div class="label">vagas restantes de ${evento.vagas}</div>
+              <div style="margin-bottom:1rem;">
+                <div style="font-size:2rem; font-weight:bold; color:var(--primary);">${lotado ? '0' : vagasRestantes}</div>
+                <div style="font-size:0.8rem; color:var(--gray-500);">vagas restantes de ${evento.vagas}</div>
               </div>
-              ${botaoInscricao}
-            </div>
-            <div class="sidebar-card">
-              <h3>Compartilhe</h3>
-              <p style="color:var(--gray-600); font-size:0.9rem; margin-bottom:0.8rem;">
-                Convide seus amigos para este evento!
-              </p>
-              <button class="btn btn-outline" style="width:100%;" onclick="navigator.clipboard.writeText(location.href); mostrarToast('Link copiado!', 'success', '🔗')">
-                📋 Copiar link
-              </button>
-            </div>
-            <div class="sidebar-card">
-              <a href="eventos.html" class="btn btn-outline" style="width:100%;">← Voltar aos eventos</a>
+              ${botao}
             </div>
           </aside>
-        </div>`;
-    })();
+        </div>
+      `;
+    });
   </script>
 </body>
 </html>

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- HEADER PADRONIZADO -->
   <header class="site-header">
     <div class="container navbar">
       <a href="index.html" class="logo">Event<span>Hub</span></a>
@@ -14,10 +15,11 @@
         <ul class="nav-menu" id="navMenu">
           <li><a href="index.html">Início</a></li>
           <li><a href="eventos.html">Eventos</a></li>
-          <li><a href="admin.html">Admin</a></li>
+          <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
           <li><a href="participantes.html">Participantes</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html" class="active">Contato</a></li>
+          <li id="userMenu"><a href="login.html" class="btn-login">Entrar</a></li>
         </ul>
       </nav>
       <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
@@ -74,41 +76,46 @@
     </div>
   </footer>
 
+  <!-- SCRIPTS OBRIGATÓRIOS -->
   <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/validacao.js"></script>
   <script>
-    const form = document.getElementById('formContato');
-    form.querySelectorAll('input, select, textarea').forEach(c =>
-      c.addEventListener('input', () => Validacao.limparErro(c))
-    );
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('formContato');
+      
+      form.querySelectorAll('input, select, textarea').forEach(c =>
+        c.addEventListener('input', () => Validacao.limparErro(c))
+      );
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      Validacao.limparTodos(form);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        Validacao.limparTodos(form);
 
-      const nome = document.getElementById('nomeContato');
-      const email = document.getElementById('emailContato');
-      const assunto = document.getElementById('assuntoContato');
-      const msg = document.getElementById('mensagemContato');
+        const nome = document.getElementById('nomeContato');
+        const email = document.getElementById('emailContato');
+        const assunto = document.getElementById('assuntoContato');
+        const msg = document.getElementById('mensagemContato');
 
-      let ok = true;
-      if (nome.value.trim().length < 3) { Validacao.aplicarErro(nome, 'Nome inválido.'); ok = false; }
-      if (!Validacao.emailValido(email.value.trim())) { Validacao.aplicarErro(email, 'E-mail inválido.'); ok = false; }
-      if (!assunto.value) { Validacao.aplicarErro(assunto, 'Assunto obrigatório.'); ok = false; }
-      if (msg.value.trim().length < 10) { Validacao.aplicarErro(msg, 'Mensagem muito curta.'); ok = false; }
+        let ok = true;
+        if (nome.value.trim().length < 3) { Validacao.aplicarErro(nome, 'Nome inválido.'); ok = false; }
+        if (!Validacao.emailValido(email.value.trim())) { Validacao.aplicarErro(email, 'E-mail inválido.'); ok = false; }
+        if (!assunto.value) { Validacao.aplicarErro(assunto, 'Assunto obrigatório.'); ok = false; }
+        if (msg.value.trim().length < 10) { Validacao.aplicarErro(msg, 'Mensagem muito curta.'); ok = false; }
 
-      if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
+        if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
 
-      // Salvar mensagem via DB (centralizado no app.js)
-      DB.addMensagem({
-        nome: nome.value.trim(),
-        email: email.value.trim(),
-        assunto: assunto.value,
-        mensagem: msg.value.trim()
+        // Salvar mensagem no banco de dados
+        DB.addMensagem({
+          nome: nome.value.trim(),
+          email: email.value.trim(),
+          assunto: assunto.value,
+          mensagem: msg.value.trim()
+        });
+
+        form.reset();
+        mostrarToast('Mensagem enviada com sucesso!', 'success', '✅');
       });
-
-      form.reset();
-      mostrarToast('Mensagem enviada com sucesso!', 'success', '✅');
     });
   </script>
 </body>
