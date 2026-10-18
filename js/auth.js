@@ -33,24 +33,32 @@ const Auth = {
     return this.getUsuarios().find(u => u.email.toLowerCase() === email.toLowerCase());
   },
 
-  cadastrar(email, senha) {
-    if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
-    if (senha.length < 4) return { sucesso: false, mensagem: 'Senha deve ter no mínimo 4 caracteres.' };
+  cadastrarAdmin(email, senha) {
+    // Verifica se quem está pedindo é admin
+    if (!this.isAdmin()) {
+      return { sucesso: false, mensagem: 'Acesso negado. Apenas administradores podem criar outros administradores.' };
+    }
+    if (!email || !senha) {
+      return { sucesso: false, mensagem: 'Preencha todos os campos.' };
+    }
+    if (senha.length < 4) {
+      return { sucesso: false, mensagem: 'A senha deve ter no mínimo 4 caracteres.' };
+    }
     
     const usuarios = this.getUsuarios();
     if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { sucesso: false, mensagem: 'E-mail já cadastrado.' };
+      return { sucesso: false, mensagem: 'Este e-mail já está cadastrado no sistema.' };
     }
-    
+
     usuarios.push({
       email: email,
       senha: senha,
-      tipo: 'participante',
-      nome: email.split('@')[0],
+      tipo: 'admin', // <-- AQUI define como admin
+      nome: 'Administrador',
       criadoEm: new Date().toISOString()
     });
     this.setUsuarios(usuarios);
-    return { sucesso: true, mensagem: 'Conta criada com sucesso!' };
+    return { sucesso: true, mensagem: 'Novo Administrador criado com sucesso!' };
   },
 
   login(email, senha) {
