@@ -14,10 +14,11 @@
         <ul class="nav-menu" id="navMenu">
           <li><a href="index.html">Início</a></li>
           <li><a href="eventos.html">Eventos</a></li>
-          <li><a href="admin.html" class="active">Admin</a></li>
+          <li id="adminLink"><a href="admin.html" class="active">Admin</a></li>
           <li><a href="participantes.html">Participantes</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
+          <li id="userMenu"></li>
         </ul>
       </nav>
       <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
@@ -102,74 +103,74 @@
   </footer>
 
   <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/validacao.js"></script>
   <script>
-    const form = document.getElementById('formEvento');
+    document.addEventListener('DOMContentLoaded', () => {
+      // 🔒 Apenas Admin pode acessar esta página
+      if (!Auth.proteger(true)) return;
 
-    form.querySelectorAll('input, select, textarea').forEach(c =>
-      c.addEventListener('input', () => Validacao.limparErro(c))
-    );
+      const form = document.getElementById('formEvento');
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      Validacao.limparTodos(form);
+      form.querySelectorAll('input, select, textarea').forEach(c =>
+        c.addEventListener('input', () => Validacao.limparErro(c))
+      );
 
-      const nome = document.getElementById('nome');
-      const categoria = document.getElementById('categoria');
-      const data = document.getElementById('data');
-      const horario = document.getElementById('horario');
-      const local = document.getElementById('local');
-      const vagas = document.getElementById('vagas');
-      const descricao = document.getElementById('descricao');
-      const responsavel = document.getElementById('responsavel');
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        Validacao.limparTodos(form);
 
-      let ok = true;
-      if (nome.value.trim().length < 3) { Validacao.aplicarErro(nome, 'Nome inválido.'); ok = false; }
-      if (!categoria.value) { Validacao.aplicarErro(categoria, 'Categoria obrigatória.'); ok = false; }
-      if (!data.value) { Validacao.aplicarErro(data, 'Data obrigatória.'); ok = false; }
-      if (!horario.value.trim()) { Validacao.aplicarErro(horario, 'Horário obrigatório.'); ok = false; }
-      if (!local.value.trim()) { Validacao.aplicarErro(local, 'Local obrigatório.'); ok = false; }
-      if (!vagas.value || parseInt(vagas.value) < 1) { Validacao.aplicarErro(vagas, 'Mínimo 1 vaga.'); ok = false; }
-      if (descricao.value.trim().length < 10) { Validacao.aplicarErro(descricao, 'Mín. 10 caracteres.'); ok = false; }
-      if (!responsavel.value.trim()) { Validacao.aplicarErro(responsavel, 'Responsável obrigatório.'); ok = false; }
+        const nome = document.getElementById('nome');
+        const categoria = document.getElementById('categoria');
+        const data = document.getElementById('data');
+        const horario = document.getElementById('horario');
+        const local = document.getElementById('local');
+        const vagas = document.getElementById('vagas');
+        const descricao = document.getElementById('descricao');
+        const responsavel = document.getElementById('responsavel');
 
-      if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
+        let ok = true;
+        if (nome.value.trim().length < 3) { Validacao.aplicarErro(nome, 'Nome inválido.'); ok = false; }
+        if (!categoria.value) { Validacao.aplicarErro(categoria, 'Categoria obrigatória.'); ok = false; }
+        if (!data.value) { Validacao.aplicarErro(data, 'Data obrigatória.'); ok = false; }
+        if (!horario.value.trim()) { Validacao.aplicarErro(horario, 'Horário obrigatório.'); ok = false; }
+        if (!local.value.trim()) { Validacao.aplicarErro(local, 'Local obrigatório.'); ok = false; }
+        if (!vagas.value || parseInt(vagas.value) < 1) { Validacao.aplicarErro(vagas, 'Mínimo 1 vaga.'); ok = false; }
+        if (descricao.value.trim().length < 10) { Validacao.aplicarErro(descricao, 'Mín. 10 caracteres.'); ok = false; }
+        if (!responsavel.value.trim()) { Validacao.aplicarErro(responsavel, 'Responsável obrigatório.'); ok = false; }
 
-      const cores = [
-        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-      ];
-      const emojis = { 'Tecnologia':'☁️', 'Inteligência Artificial':'🤖', 'Programação':'⚡', 'Redes':'🌐', 'Banco de Dados':'🗄️', 'Desenvolvimento Web':'💻' };
+        if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
 
-      DB.addEvento({
-        nome: nome.value.trim(),
-        categoria: categoria.value,
-        data: data.value,
-        horario: horario.value.trim(),
-        local: local.value.trim(),
-        vagas: parseInt(vagas.value),
-        descricao: descricao.value.trim(),
-        responsavel: responsavel.value.trim(),
-        imagem: emojis[categoria.value] || '📌',
-        cor: cores[Math.floor(Math.random() * cores.length)],
-        programacao: []
+        const cores = [
+          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+          'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+        ];
+        const emojis = { 'Tecnologia':'☁️', 'Inteligência Artificial':'🤖', 'Programação':'⚡', 'Redes':'🌐', 'Banco de Dados':'🗄️', 'Desenvolvimento Web':'💻' };
+
+        DB.addEvento({
+          nome: nome.value.trim(),
+          categoria: categoria.value,
+          data: data.value,
+          horario: horario.value.trim(),
+          local: local.value.trim(),
+          vagas: parseInt(vagas.value),
+          descricao: descricao.value.trim(),
+          responsavel: responsavel.value.trim(),
+          imagem: emojis[categoria.value] || '📌',
+          cor: cores[Math.floor(Math.random() * cores.length)],
+          programacao: []
+        });
+
+        // 👇 LOG DE AUDITORIA ADICIONADO AQUI
+        registrarLog('Cadastrar Evento', `Novo evento criado: "${nome.value.trim()}" na categoria ${categoria.value}.`);
+
+        mostrarToast('Evento cadastrado com sucesso!', 'success', '✅');
+        setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
       });
-
-      mostrarToast('Evento cadastrado com sucesso!', 'success', '✅');
-      setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
     });
   </script>
-  <script src="js/app.js"></script>
-<script src="js/auth.js"></script>
-<script>
-  if (!Auth.proteger()) { /* redireciona */ }
-</script>
-<script src="js/validacao.js"></script>
-<script>
-  /* restante do script existente */
-</script>
 </body>
 </html>

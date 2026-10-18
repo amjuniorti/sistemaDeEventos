@@ -173,10 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
     modalEditar.classList.add('open');
   };
 
-  formEditar.addEventListener('submit', e => {
+   formEditar.addEventListener('submit', e => {
     e.preventDefault();
+    
     const id = parseInt(document.getElementById('editId').value);
-    DB.updateEvento(id, {
+    
+    // Captura os dados do formulário
+    const dadosAtualizados = {
       nome: document.getElementById('editNome').value.trim(),
       categoria: document.getElementById('editCategoria').value,
       data: document.getElementById('editData').value,
@@ -185,7 +188,15 @@ document.addEventListener('DOMContentLoaded', () => {
       vagas: parseInt(document.getElementById('editVagas').value),
       responsavel: document.getElementById('editResponsavel').value.trim(),
       descricao: document.getElementById('editDescricao').value.trim()
-    });
+    };
+
+    // Atualiza no banco de dados
+    DB.updateEvento(id, dadosAtualizados);
+
+    // 👇 ADICIONE ESTA LINHA PARA REGISTRAR O LOG
+    registrarLog('Editar Evento', `O evento "${dadosAtualizados.nome}" (ID ${id}) foi atualizado.`);
+
+    // Fecha o modal e atualiza a tela
     modalEditar.classList.remove('open');
     mostrarToast('Evento atualizado!', 'success', '✏️');
     atualizarStats();

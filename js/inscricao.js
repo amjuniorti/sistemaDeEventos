@@ -115,13 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Insere a inscrição
-    DB.addParticipante({
+       DB.addParticipante({
       nome: nome.value.trim(),
       email: emailFinal,
       telefone: telefone.value.trim(),
       nascimento: nascimento.value,
       eventoId: eventoId
     });
+
+    // 👇 ADICIONE ESTA LINHA AQUI 👇
+    registrarLog('Nova Inscrição', `Inscrição realizada no evento "${evento.nome}" pelo e-mail ${emailFinal}.`);
 
     form.reset();
     

@@ -61,7 +61,7 @@ const Auth = {
     return { sucesso: true, mensagem: 'Novo Administrador criado com sucesso!' };
   },
 
-  login(email, senha) {
+   login(email, senha) {
     if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
     
     const usuario = this.getUsuarios().find(u =>
@@ -76,9 +76,12 @@ const Auth = {
       nome: usuario.nome || usuario.email.split('@')[0],
       logadoEm: new Date().toISOString()
     });
+
+    // 👇 ADICIONE ESTA LINHA PARA REGISTRAR O LOG
+    registrarLog('Login', `O usuário ${usuario.email} entrou no sistema.`);
+
     return { sucesso: true, usuario };
   },
-
   recuperarSenha(email) {
     const usuario = this.getUsuario(email);
     if (!usuario) return { sucesso: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá instruções em breve.' };

@@ -143,3 +143,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+/* ============================================================
+   SISTEMA DE LOGS (AUDITORIA)
+   ============================================================ */
+function registrarLog(acao, detalhes) {
+  // Pega a sessão atual para saber quem fez a ação
+  const sessao = JSON.parse(localStorage.getItem('eventhub_sessao') || 'null');
+  const autor = sessao ? sessao.email : 'Visitante';
+  const tipo = sessao ? sessao.tipo : 'anonimo';
+
+  // Pega a data e hora atual
+  const agora = new Date().toISOString();
+
+  // Pega os logs existentes ou cria um novo array
+  const logs = JSON.parse(localStorage.getItem('eventhub_logs') || '[]');
+
+  // Adiciona o novo log no início da lista
+  logs.unshift({
+    id: Date.now(),
+    autor: autor,
+    tipo: tipo,
+    acao: acao,
+    detalhes: detalhes,
+    data: agora
+  });
+
+  // Limita a 500 logs para não estourar a memória do navegador
+  if (logs.length > 500) logs.pop();
+
+  // Salva de volta no navegador
+  localStorage.setItem('eventhub_logs', JSON.stringify(logs));
+}

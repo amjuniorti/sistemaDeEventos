@@ -41,7 +41,7 @@
       <div class="admin-section">
         <div class="admin-toolbar" style="align-items: flex-end;">
           <h2>📅 Eventos Cadastrados</h2>
-                    <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+          <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
             
             <!-- FILTROS DE EVENTO -->
             <input type="text" class="admin-search" id="buscaEvento" placeholder="🔍 Nome ou local...">
@@ -58,10 +58,15 @@
             
             <button class="btn btn-outline" id="btnLimparFiltros" style="padding: 0.7rem 1rem;">✕ Limpar</button>
             
-            <!-- NOVO BOTÃO AQUI -->
+            <!-- BOTÃO DE LOGS (Apenas Admin Principal vê a página) -->
+            <a href="logs.html" class="btn btn-outline" style="border-color: #2c3e50; color: #2c3e50; background: #f0f0f5;">🛡️ Logs</a>
+            
+            <!-- BOTÃO DE NOVO ADMIN -->
             <a href="cadastro-admin.html" class="btn btn-outline" style="border-color: #8e44ad; color: #8e44ad;">👤 Novo Admin</a>
             
+            <!-- BOTÃO DE NOVO EVENTO -->
             <a href="cadastro-evento.html" class="btn btn-primary">+ Novo Evento</a>
+            
           </div>
         </div>
         <div class="admin-table-wrapper">
