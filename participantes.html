@@ -169,9 +169,17 @@
 
     function removerParticipante(id) {
       if (!isAdmin) return;
+      const p = DB.getParticipantes().find(x => x.id === id);
+      if (!p) return;
+      const ev = DB.getEventos().find(e => e.id === p.eventoId);
+
       if (confirm('Remover este participante?')) {
         DB.deleteParticipante(id);
         mostrarToast('Participante removido.', 'warning', '🗑');
+        
+        // LOG DE AUDITORIA (Admin removendo participante)
+        registrarLog('Excluir Participante', `O admin removeu a inscrição de "${p.nome}" no evento "${ev ? ev.nome : 'Removido'}".`);
+        
         render(document.getElementById('buscaParticipante').value);
       }
     }
@@ -194,6 +202,12 @@
 
       DB.deleteParticipante(id);
       mostrarToast(`Inscrição em "${nomeEvento}" cancelada.`, 'warning', '🗑');
+      
+      // LOG DE AUDITORIA (Participante cancelando a própria inscrição)
+      if (typeof registrarLog === 'function') {
+        registrarLog('Cancelar Inscrição', `O participante ${participante.email} cancelou a inscrição no evento "${nomeEvento}".`);
+      }
+
       render(document.getElementById('buscaParticipante').value);
     }
 
