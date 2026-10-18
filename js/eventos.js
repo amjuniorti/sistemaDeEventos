@@ -1,133 +1,77 @@
 'use strict';
 
-const state = {
-  search: '',
-  categoria: '',
-  data: '',
-  ordenacao: 'date-asc'
-};
+document.addEventListener('DOMContentLoaded', () => {
+  const state = { search: '', categoria: '', ordenacao: 'date-asc' };
+  const eventos = DB.getEventos();
+  const categoryFilter = document.getElementById('categoryFilter');
 
-const eventos = DB.getEventos();
+  // Popular Select
+  [...new Set(eventos.map(e => e.categoria))].sort().forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat; opt.textContent = cat;
+    categoryFilter.appendChild(opt);
+  });
 
-// Popular select de categorias
-const categoryFilter = document.getElementById('categoryFilter');
-[...new Set(eventos.map(e => e.categoria))].sort().forEach(cat => {
-  const opt = document.createElement('option');
-  opt.value = cat;
-  opt.textContent = cat;
-  categoryFilter.appendChild(opt);
-});
+  const params = new URLSearchParams(location.search);
+  if (params.get('categoria')) {
+    state.categoria = params.get('categoria');
+    categoryFilter.value = state.categoria;
+  }
 
-// Ler query string (?categoria=)
-const params = new URLSearchParams(location.search);
-if (params.get('categoria')) {
-  state.categoria = params.get('categoria');
-  categoryFilter.value = state.categoria;
-}
+  const searchInput = document.getElementById('searchInput');
+  const sortFilter = document.getElementById('sortFilter');
+  const clearBtn = document.getElementById('clearFilters');
+  const grid = document.getElementById('eventsGrid');
+  const resultsCount = document.getElementById('resultsCount');
 
-const searchInput = document.getElementById('searchInput');
-const dateFilter = document.getElementById('dateFilter');
-const sortFilter = document.getElementById('sortFilter');
-const clearBtn = document.getElementById('clearFilters');
-const grid = document.getElementById('eventsGrid');
-const resultsCount = document.getElementById('resultsCount');
-const activeFilters = document.getElementById('activeFilters');
-
-function cardHTML(e) {
-  return `
-    <article class="event-card">
-      <div class="event-image" style="background:${e.cor}">
-        <span class="event-category-badge">${e.categoria}</span>
-        <span>${e.imagem}</span>
-      </div>
-      <div class="event-info">
-        <h3>${e.nome}</h3>
-        <ul class="event-meta-list">
-          <li><span class="icon">📅</span> ${formatarData(e.data)}</li>
-          <li><span class="icon">🕒</span> ${e.horario}</li>
-          <li><span class="icon">📍</span> ${e.local}</li>
-        </ul>
-        <p class="event-description">${e.descricao}</p>
-        <div class="event-footer">
-          <span class="badge ${e.vagas <= 10 ? 'full' : e.vagas <= 50 ? 'low' : ''}">${e.vagas} vagas</span>
-          <a href="evento.html?id=${e.id}" class="btn btn-primary btn-sm">Ver detalhes</a>
+  function cardHTML(e) {
+    const imgUrl = obterImagemEvento(e);
+    const vagasClass = e.vagas <= 10 ? 'full' : e.vagas <= 50 ? 'low' : '';
+    return `
+      <article class="event-card">
+        <div class="event-image event-image-photo">
+          <img src="${imgUrl}" class="img-cover" alt="${e.nome}" loading="lazy" onerror="this.src='${IMAGEM_FALLBACK}'">
+          <span class="event-category-badge">${e.categoria}</span>
         </div>
-      </div>
-    </article>`;
-}
-
-function render() {
-  let filtrados = eventos.filter(e => {
-    const okBusca = e.nome.toLowerCase().includes(state.search.toLowerCase());
-    const okCat = !state.categoria || e.categoria === state.categoria;
-    const okData = !state.data || e.data === state.data;
-    return okBusca && okCat && okData;
-  });
-
-  switch (state.ordenacao) {
-    case 'date-asc': filtrados.sort((a, b) => a.data.localeCompare(b.data)); break;
-    case 'date-desc': filtrados.sort((a, b) => b.data.localeCompare(a.data)); break;
-    case 'name-asc': filtrados.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')); break;
-    case 'vagas-desc': filtrados.sort((a, b) => b.vagas - a.vagas); break;
+        <div class="event-info">
+          <h3>${e.nome}</h3>
+          <ul class="event-meta-list">
+            <li><span class="icon">📅</span> ${formatarData(e.data)}</li>
+            <li><span class="icon">🕒</span> ${e.horario}</li>
+            <li><span class="icon">📍</span> ${e.local}</li>
+          </ul>
+          <p class="event-description">${e.descricao}</p>
+          <div class="event-footer">
+            <span class="badge ${vagasClass}">${e.vagas} vagas</span>
+            <a href="evento.html?id=${e.id}" class="btn btn-primary btn-sm">Ver detalhes</a>
+          </div>
+        </div>
+      </article>`;
   }
 
-  resultsCount.textContent = filtrados.length;
+  function render() {
+    let filtrados = eventos.filter(e => {
+      const okBusca = e.nome.toLowerCase().includes(state.search.toLowerCase());
+      const okCat = !state.categoria || e.categoria === state.categoria;
+      return okBusca && okCat;
+    });
 
-  if (!filtrados.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <span class="icon">🔎</span>
-        <h3>Nenhum evento encontrado</h3>
-        <p>Ajuste os filtros ou limpe tudo.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('clearFilters').click()">Limpar filtros</button>
-      </div>`;
-  } else {
-    grid.innerHTML = filtrados.map(cardHTML).join('');
+    if (state.ordenacao === 'date-asc') filtrados.sort((a, b) => a.data.localeCompare(b.data));
+    if (state.ordenacao === 'date-desc') filtrados.sort((a, b) => b.data.localeCompare(a.data));
+    if (state.ordenacao === 'name-asc') filtrados.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+    resultsCount.textContent = filtrados.length;
+    grid.innerHTML = filtrados.length ? filtrados.map(cardHTML).join('') : `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:3rem;"><h3>Nenhum evento encontrado.</h3></div>`;
   }
 
-  renderChips();
-}
-
-function renderChips() {
-  activeFilters.innerHTML = '';
-  const chips = [];
-  if (state.search) chips.push({ label: `Busca: "${state.search}"`, key: 'search' });
-  if (state.categoria) chips.push({ label: `Categoria: ${state.categoria}`, key: 'categoria' });
-  if (state.data) chips.push({ label: `Data: ${formatarData(state.data)}`, key: 'data' });
-
-  if (!chips.length) return;
-
-  const label = document.createElement('span');
-  label.className = 'label';
-  label.textContent = 'Filtros ativos:';
-  activeFilters.appendChild(label);
-
-  chips.forEach(c => {
-    const el = document.createElement('span');
-    el.className = 'filter-chip';
-    el.innerHTML = `${c.label} <button aria-label="Remover">✕</button>`;
-    el.querySelector('button').onclick = () => {
-      if (c.key === 'search') { state.search = ''; searchInput.value = ''; }
-      if (c.key === 'categoria') { state.categoria = ''; categoryFilter.value = ''; }
-      if (c.key === 'data') { state.data = ''; dateFilter.value = ''; }
-      render();
-    };
-    activeFilters.appendChild(el);
+  searchInput.addEventListener('input', e => { state.search = e.target.value; render(); });
+  categoryFilter.addEventListener('change', e => { state.categoria = e.target.value; render(); });
+  sortFilter.addEventListener('change', e => { state.ordenacao = e.target.value; render(); });
+  clearBtn.addEventListener('click', () => {
+    state.search = ''; state.categoria = ''; state.ordenacao = 'date-asc';
+    searchInput.value = ''; categoryFilter.value = ''; sortFilter.value = 'date-asc';
+    render();
   });
-}
 
-searchInput.addEventListener('input', e => {
-  state.search = e.target.value.trim();
   render();
 });
-categoryFilter.addEventListener('change', e => { state.categoria = e.target.value; render(); });
-dateFilter.addEventListener('change', e => { state.data = e.target.value; render(); });
-sortFilter.addEventListener('change', e => { state.ordenacao = e.target.value; render(); });
-clearBtn.addEventListener('click', () => {
-  state.search = ''; state.categoria = ''; state.data = ''; state.ordenacao = 'date-asc';
-  searchInput.value = ''; categoryFilter.value = ''; dateFilter.value = ''; sortFilter.value = 'date-asc';
-  render();
-  mostrarToast('Filtros limpos!', 'success', '✓');
-});
-
-render();
