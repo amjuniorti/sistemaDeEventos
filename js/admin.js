@@ -136,12 +136,25 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ============================================================
      LÓGICA DE EXCLUSÃO E EDIÇÃO
      ============================================================ */
-  window.excluirEvento = function(id, nome) {
+    window.excluirEvento = function(id, nome) {
+    // Confirmação
     if (!confirm(`Excluir o evento "${nome}"? Os participantes vinculados também serão removidos.`)) return;
+    
+    // Deleta o evento
     DB.deleteEvento(id);
+    
+    // Remove os participantes vinculados a ele
     const participantes = DB.getParticipantes().filter(p => p.eventoId !== id);
     DB.setParticipantes(participantes);
     
+    // 👇 REGISTRA O LOG DE AUDITORIA
+    if (typeof registrarLog === 'function') {
+      registrarLog('Excluir Evento', `O evento "${nome}" (ID ${id}) foi excluído pelo admin.`);
+    } else {
+      console.warn('Função registrarLog não encontrada no app.js');
+    }
+
+    // Atualiza a tela
     mostrarToast('Evento excluído.', 'warning', '🗑');
     atualizarStats();
     renderTabela(); 
