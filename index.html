@@ -100,6 +100,25 @@
             </article>`;
         }
 
+                // Skeleton Loading
+        const skeletonHTML = `
+          <article class="event-card" style="pointer-events:none;">
+            <div class="skeleton skeleton-image"></div>
+            <div class="event-info">
+              <div class="skeleton skeleton-title"></div>
+              <div class="skeleton skeleton-text" style="width:80%"></div>
+              <div class="skeleton skeleton-text" style="width:60%"></div>
+              <div class="skeleton skeleton-text" style="width:90%; margin-top:15px;"></div>
+            </div>
+          </article>`;
+        document.getElementById('destaques').innerHTML = skeletonHTML + skeletonHTML + skeletonHTML;
+
+        // Depois de 800ms, substitui pelo conteúdo real (simulando carregamento)
+        setTimeout(() => {
+          document.getElementById('destaques').innerHTML = eventos.slice(0, 3).map(cardHome).join('');
+          document.getElementById('proximos').innerHTML = eventos.slice(3, 6).map(cardHome).join('');
+        }, 800);
+
         document.getElementById('destaques').innerHTML = eventos.slice(0, 3).map(cardHome).join('');
         document.getElementById('proximos').innerHTML = eventos.slice(3, 6).map(cardHome).join('');
 

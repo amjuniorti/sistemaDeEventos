@@ -295,3 +295,44 @@ footer { background: var(--dark); color: white; padding: 3rem 0 1.5rem; margin-t
   left: 15px;
   z-index: 2;
 }
+
+/* ============================================================
+   GLASSMORPHISM (Efeito de Vidro)
+   ============================================================ */
+.auth-card, .modal {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.modal-hero { border-radius: 16px 16px 0 0; }
+
+/* ============================================================
+   MICRO-INTERAÇÕES (Efeito de aperto nos botões)
+   ============================================================ */
+button, .btn {
+  transition: transform 0.1s ease, background 0.3s;
+}
+button:active, .btn:active {
+  transform: scale(0.96) !important;
+}
+
+/* ============================================================
+   SKELETON LOADING (Tela de carregamento dos cards)
+   ============================================================ */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 6px;
+}
+
+.skeleton-text { height: 16px; margin-bottom: 8px; width: 100%; }
+.skeleton-title { height: 24px; margin-bottom: 12px; width: 70%; }
+.skeleton-image { height: 180px; width: 100%; border-radius: 10px 10px 0 0; }
