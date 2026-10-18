@@ -69,6 +69,12 @@
         botao = `<span class="badge" style="display:block;text-align:center;margin-bottom:1rem;">✅ Você já está inscrito</span><a href="participantes.html" class="btn btn-outline" style="width:100%;">Ver minhas inscrições</a>`;
       } else if (lotado) {
         botao = `<span class="badge full" style="display:block;text-align:center;margin-bottom:1rem;">EVENTO LOTADO</span><button class="btn btn-primary" style="width:100%;" disabled>Esgotado</button>`;
+      } else if (!sessao || sessao.tipo !== 'participante') {
+        // Se não estiver logado como participante, pede para fazer login/cadastro
+        botao = `
+          <p style="font-size:0.85rem; color:var(--gray-600); text-align:center; margin-bottom:1rem;">Faça login para se inscrever</p>
+          <a href="login.html?redirect=inscricao.html?eventoId=${evento.id}" class="btn btn-primary" style="width:100%; margin-bottom:0.5rem;">🔒 Entrar / Cadastrar</a>
+        `;
       } else {
         botao = `<a href="inscricao.html?eventoId=${evento.id}" class="btn btn-primary" style="width:100%;">🎟️ Inscrever-se</a>`;
       }
