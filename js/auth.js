@@ -1,8 +1,5 @@
 'use strict';
 
-/* ============================================================
-   MÓDULO DE AUTENTICAÇÃO COM PERFIS
-   ============================================================ */
 const Auth = {
   USUARIOS_KEY: 'eventhub_usuarios',
   SESSAO_KEY: 'eventhub_sessao',
@@ -33,8 +30,36 @@ const Auth = {
     return this.getUsuarios().find(u => u.email.toLowerCase() === email.toLowerCase());
   },
 
+  cadastrar(email, senha) {
+    if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
+    if (senha.length < 4) return { sucesso: false, mensagem: 'Senha deve ter no mínimo 4 caracteres.' };
+    
+    const usuarios = this.getUsuarios();
+    if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+      return { sucesso: false, mensagem: 'E-mail já cadastrado.' };
+    }
+    
+    usuarios.push({
+      email: email,
+      senha: senha,
+      tipo: 'participante',
+      nome: email.split('@')[0],
+      criadoEm: new Date().toISOString()
+    });
+    this.setUsuarios(usuarios);
+    
+    // LOG DE AUDITORIA
+    if (typeof registrarLog === 'function') {
+      registrarLog('Novo Cadastro', `Uma nova conta de participante foi criada: ${email}.`);
+    }
+
+    return { sucesso: true, mensagem: 'Conta criada com sucesso!' };
+  },
+
+  /* ============================================================
+     CADASTRAR NOVO ADMIN (Só pode ser chamado por um admin logado)
+     ============================================================ */
   cadastrarAdmin(email, senha) {
-    // Verifica se quem está pedindo é admin
     if (!this.isAdmin()) {
       return { sucesso: false, mensagem: 'Acesso negado. Apenas administradores podem criar outros administradores.' };
     }
@@ -53,15 +78,21 @@ const Auth = {
     usuarios.push({
       email: email,
       senha: senha,
-      tipo: 'admin', // <-- AQUI define como admin
+      tipo: 'admin',
       nome: 'Administrador',
       criadoEm: new Date().toISOString()
     });
     this.setUsuarios(usuarios);
+
+    // 👇 LOG DE AUDITORIA PARA NOVO ADMIN
+    if (typeof registrarLog === 'function') {
+      registrarLog('Novo Admin', `Um novo administrador foi cadastrado: ${email}.`);
+    }
+
     return { sucesso: true, mensagem: 'Novo Administrador criado com sucesso!' };
   },
 
-   login(email, senha) {
+  login(email, senha) {
     if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
     
     const usuario = this.getUsuarios().find(u =>
@@ -77,11 +108,14 @@ const Auth = {
       logadoEm: new Date().toISOString()
     });
 
-    // 👇 ADICIONE ESTA LINHA PARA REGISTRAR O LOG
-    registrarLog('Login', `O usuário ${usuario.email} entrou no sistema.`);
+    // LOG DE AUDITORIA
+    if (typeof registrarLog === 'function') {
+      registrarLog('Login', `O usuário ${usuario.email} entrou no sistema.`);
+    }
 
     return { sucesso: true, usuario };
   },
+
   recuperarSenha(email) {
     const usuario = this.getUsuario(email);
     if (!usuario) return { sucesso: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá instruções em breve.' };
@@ -96,6 +130,10 @@ const Auth = {
     localStorage.setItem(this.SESSAO_KEY, JSON.stringify(dados));
   },
   logout() {
+    const sessao = this.getSessao();
+    if (sessao && typeof registrarLog === 'function') {
+      registrarLog('Logout', `O usuário ${sessao.email} saiu do sistema.`);
+    }
     localStorage.removeItem(this.SESSAO_KEY);
   },
   estaLogado() {
@@ -126,17 +164,12 @@ const Auth = {
     const userMenu = document.getElementById('userMenu');
     const btnCriar = document.getElementById('btnCriarEvento');
 
-    // Admin link: só para admin
     if (adminLink) {
       adminLink.style.display = (sessao && sessao.tipo === 'admin') ? '' : 'none';
     }
-
-    // Botão "Criar Evento": só para admin
     if (btnCriar) {
       btnCriar.style.display = (sessao && sessao.tipo === 'admin') ? '' : 'none';
     }
-
-    // Menu do usuário
     if (userMenu) {
       if (!sessao) {
         userMenu.innerHTML = `<a href="login.html" class="btn-login">Entrar</a>`;
@@ -163,9 +196,6 @@ const Auth = {
 
 Auth.init();
 
-// ============================================================
-// EXECUÇÃO GLOBAL: Roda assim que o DOM estiver pronto
-// ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   Auth.aplicarMenuPorPerfil();
 });
