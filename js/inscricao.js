@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const nomeInput = document.getElementById('nome');
   const emailInput = document.getElementById('email');
   
-  // O nome de usuário padrão é a parte antes do @. O usuário pode alterar se quiser.
   nomeInput.value = sessao.nome || sessao.email.split('@')[0];
   emailInput.value = sessao.email;
 
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const form = document.getElementById('formInscricao');
-  const sucesso = document.getElementById('mensagemSucesso');
 
   // Máscara de telefone
   document.getElementById('telefone').addEventListener('input', e => {
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventoId = parseInt(select.value);
     const emailFinal = email.value.trim().toLowerCase();
 
-    // Validação de duplicidade (mesmo e-mail no mesmo evento)
+    // Validação de duplicidade
     const jaInscrito = DB.getParticipantes().find(p =>
       p.eventoId === eventoId && p.email.toLowerCase() === emailFinal
     );
@@ -114,26 +112,68 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Insere a inscrição
-       DB.addParticipante({
+    // ============================================================
+    // GERA O CÓDIGO DO INGRESSO E SALVA
+    // ============================================================
+    const codigoIngresso = 'EVH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    DB.addParticipante({
       nome: nome.value.trim(),
       email: emailFinal,
       telefone: telefone.value.trim(),
       nascimento: nascimento.value,
-      eventoId: eventoId
+      eventoId: eventoId,
+      codigo: codigoIngresso
     });
 
-    // 👇 ADICIONE ESTA LINHA AQUI 👇
-    registrarLog('Nova Inscrição', `Inscrição realizada no evento "${evento.nome}" pelo e-mail ${emailFinal}.`);
+    registrarLog('Nova Inscrição', `Inscrição no evento "${evento.nome}" por ${emailFinal}.`);
 
-    form.reset();
+    // ============================================================
+    // EXIBE O INGRESSO COM QR CODE NA TELA
+    // ============================================================
+    form.style.display = 'none';
     
-    // Reaplica os dados da sessão após o reset
-    nomeInput.value = sessao.nome || sessao.email.split('@')[0];
-    emailInput.value = sessao.email;
-
-    sucesso.style.display = 'block';
-    mostrarToast('Inscrição confirmada com sucesso!', 'success', '✅');
-    setTimeout(() => { sucesso.style.display = 'none'; }, 5000);
+    const ticketDiv = document.createElement('div');
+    ticketDiv.className = 'form-card';
+    ticketDiv.style.textAlign = 'center';
+    ticketDiv.innerHTML = `
+      <h2 style="color:var(--success); margin-bottom:0.5rem;">✅ Inscrição Confirmada!</h2>
+      <p style="color:var(--gray-600); margin-bottom:2rem;">Apresente este ingresso na entrada do evento.</p>
+      
+      <div style="background:white; border: 2px dashed var(--primary); border-radius: 12px; padding: 2rem; max-width: 400px; margin: 0 auto;">
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-500);">${evento.categoria}</div>
+        <h3 style="font-size: 1.5rem; color: var(--dark); margin: 0.5rem 0;">${evento.nome}</h3>
+        <p style="color: var(--gray-600); font-size: 0.9rem;">📅 ${formatarData(evento.data)} às ${evento.horario}</p>
+        <p style="color: var(--gray-600); font-size: 0.9rem;">📍 ${evento.local}</p>
+        
+        <hr style="border: none; border-top: 1px dashed var(--gray-300); margin: 1.5rem 0;">
+        
+        <div style="display: flex; justify-content: space-between; text-align: left; font-size: 0.9rem;">
+          <div><strong>Participante:</strong><br>${nome.value.trim()}</div>
+          <div><strong>Código:</strong><br>${codigoIngresso}</div>
+        </div>
+        
+        <div id="qrcode" style="display: flex; justify-content: center; margin-top: 1.5rem; padding: 1rem; background: white;"></div>
+      </div>
+      
+      <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <button onclick="window.location.href='participantes.html'" class="btn btn-outline">Ver Minhas Inscrições</button>
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Baixar Ingresso</button>
+      </div>
+    `;
+    
+    // Adiciona o ingresso na tela (logo abaixo do formulário oculto)
+    form.parentElement.appendChild(ticketDiv);
+    
+    // Gera o QR Code
+    setTimeout(() => {
+      new QRCode(document.getElementById("qrcode"), {
+        text: `Evento: ${evento.nome}\nParticipante: ${nome.value.trim()}\nCódigo: ${codigoIngresso}`,
+        width: 128,
+        height: 128,
+        colorDark: "#1a1a2e",
+        colorLight: "#ffffff"
+      });
+    }, 100);
   });
 });
