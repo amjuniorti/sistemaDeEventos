@@ -30,30 +30,81 @@ const Auth = {
     return this.getUsuarios().find(u => u.email.toLowerCase() === email.toLowerCase());
   },
 
-  cadastrar(email, senha) {
+    cadastrar(email, senha, tipo = 'participante') {
     if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
     if (senha.length < 4) return { sucesso: false, mensagem: 'Senha deve ter no mínimo 4 caracteres.' };
     
     const usuarios = this.getUsuarios();
+    
+    // E-mail único para todos
     if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      return { sucesso: false, mensagem: 'E-mail já cadastrado.' };
+      return { sucesso: false, mensagem: 'Este e-mail já está cadastrado. Faça login.' };
     }
     
     usuarios.push({
       email: email,
       senha: senha,
-      tipo: 'participante',
+      tipo: 'participante', // Todo mundo nasce participante
+      isContratante: false, // A permissão começa falsa
       nome: email.split('@')[0],
       criadoEm: new Date().toISOString()
     });
     this.setUsuarios(usuarios);
     
-    // LOG DE AUDITORIA
     if (typeof registrarLog === 'function') {
-      registrarLog('Novo Cadastro', `Uma nova conta de participante foi criada: ${email}.`);
+      registrarLog('Novo Cadastro', `Nova conta criada: ${email}.`);
     }
 
     return { sucesso: true, mensagem: 'Conta criada com sucesso!' };
+  },
+
+  // 👇 NOVA FUNÇÃO: Transforma o participante em contratante (sem criar nova conta)
+  tornarContratante() {
+    const sessao = this.getSessao();
+    if (!sessao) return { sucesso: false, mensagem: 'Precisa estar logado.' };
+
+    const usuarios = this.getUsuarios();
+    const idx = usuarios.findIndex(u => u.email === sessao.email);
+    
+    if (idx >= 0) {
+      usuarios[idx].isContratante = true;
+      this.setUsuarios(usuarios);
+      
+      // Atualiza a sessão atual
+      sessao.isContratante = true;
+      this.setSessao(sessao);
+
+      if (typeof registrarLog === 'function') {
+        registrarLog('Nova Permissão', `O usuário ${sessao.email} virou Contratante.`);
+      }
+      return { sucesso: true };
+    }
+    return { sucesso: false, mensagem: 'Usuário não encontrado.' };
+  },
+
+  // Atualize o login para trazer a permissão junto
+  login(email, senha) {
+    if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
+    
+    const usuario = this.getUsuarios().find(u =>
+      u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
+    );
+    
+    if (!usuario) return { sucesso: false, mensagem: 'E-mail ou senha inválidos.' };
+    
+    this.setSessao({
+      email: usuario.email,
+      tipo: usuario.tipo,
+      isContratante: usuario.isContratante || false, // Puxa a permissão
+      nome: usuario.nome || usuario.email.split('@')[0],
+      logadoEm: new Date().toISOString()
+    });
+
+    if (typeof registrarLog === 'function') {
+      registrarLog('Login', `O usuário ${usuario.email} entrou no sistema.`);
+    }
+
+    return { sucesso: true, usuario };
   },
 
   /* ============================================================
@@ -69,7 +120,7 @@ const Auth = {
     if (senha.length < 4) {
       return { sucesso: false, mensagem: 'A senha deve ter no mínimo 4 caracteres.' };
     }
-    
+
     const usuarios = this.getUsuarios();
     if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) {
       return { sucesso: false, mensagem: 'Este e-mail já está cadastrado no sistema.' };
@@ -84,7 +135,7 @@ const Auth = {
     });
     this.setUsuarios(usuarios);
 
-    // 👇 LOG DE AUDITORIA PARA NOVO ADMIN
+    // LOG DE AUDITORIA PARA NOVO ADMIN
     if (typeof registrarLog === 'function') {
       registrarLog('Novo Admin', `Um novo administrador foi cadastrado: ${email}.`);
     }
@@ -94,13 +145,13 @@ const Auth = {
 
   login(email, senha) {
     if (!email || !senha) return { sucesso: false, mensagem: 'Preencha todos os campos.' };
-    
+
     const usuario = this.getUsuarios().find(u =>
       u.email.toLowerCase() === email.toLowerCase() && u.senha === senha
     );
-    
+
     if (!usuario) return { sucesso: false, mensagem: 'E-mail ou senha inválidos.' };
-    
+
     this.setSessao({
       email: usuario.email,
       tipo: usuario.tipo,
@@ -118,8 +169,12 @@ const Auth = {
 
   recuperarSenha(email) {
     const usuario = this.getUsuario(email);
-    if (!usuario) return { sucesso: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá instruções em breve.' };
-    if (usuario.email === this.EMAIL_ADMIN_PADRAO) return { sucesso: true, mensagem: 'Sua senha foi redefinida para "123".' };
+    if (!usuario) {
+      return { sucesso: true, mensagem: 'Se o e-mail estiver cadastrado, você receberá instruções em breve.' };
+    }
+    if (usuario.email === this.EMAIL_ADMIN_PADRAO) {
+      return { sucesso: true, mensagem: `A senha padrão do administrador é "${this.SENHA_ADMIN_PADRAO}".` };
+    }
     return { sucesso: true, mensagem: 'Enviamos as instruções para o seu e-mail (simulação).' };
   },
 
@@ -158,18 +213,23 @@ const Auth = {
     return true;
   },
 
-  aplicarMenuPorPerfil() {
+      aplicarMenuPorPerfil() {
     const sessao = this.getSessao();
     const adminLink = document.getElementById('adminLink');
     const userMenu = document.getElementById('userMenu');
     const btnCriar = document.getElementById('btnCriarEvento');
 
+    // Admin Link: apenas para Admins
     if (adminLink) {
       adminLink.style.display = (sessao && sessao.tipo === 'admin') ? '' : 'none';
     }
+
+    // Botão "Criar Evento": qualquer pessoa logada (participante ou admin) pode criar
     if (btnCriar) {
-      btnCriar.style.display = (sessao && sessao.tipo === 'admin') ? '' : 'none';
+      btnCriar.style.display = (sessao) ? '' : 'none';
     }
+    
+    // Menu do Usuário
     if (userMenu) {
       if (!sessao) {
         userMenu.innerHTML = `<a href="login.html" class="btn-login">Entrar</a>`;
@@ -192,10 +252,27 @@ const Auth = {
       }
     }
   }
-};
+}; // ✅ FECHAMENTO DO OBJETO Auth
 
 Auth.init();
 
 document.addEventListener('DOMContentLoaded', () => {
   Auth.aplicarMenuPorPerfil();
+
+  /* ============================================================
+     VERIFICAÇÃO DE PERMISSÃO NO TOPO DO SCRIPT
+     ============================================================ */
+  const sessao = Auth.getSessao();
+  const isAdmin = sessao && sessao.tipo === 'admin';
+
+  if (isAdmin) {
+    const adminLinkEl = document.getElementById('adminLink');
+    if (adminLinkEl) adminLinkEl.style.display = '';
+  } else {
+    // Título para Participantes e Contratantes
+    const pageTitleEl = document.getElementById('pageTitle');
+    const pageSubtitleEl = document.getElementById('pageSubtitle');
+    if (pageTitleEl) pageTitleEl.innerHTML = 'Minhas <span>Inscrições</span>';
+    if (pageSubtitleEl) pageSubtitleEl.textContent = 'Gerencie as inscrições que você fez nos eventos';
+  }
 });

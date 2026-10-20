@@ -12,15 +12,33 @@ const ASSUNTOS_LABEL = {
    INICIALIZAÇÃO DO DASHBOARD
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  const buscaEvento = document.getElementById('buscaEvento');
-  const filtroCategoria = document.getElementById('filtroCategoria');
-  const ordemData = document.getElementById('ordemData');
-  const btnLimparFiltros = document.getElementById('btnLimparFiltros');
-  
-  const buscaMensagem = document.getElementById('buscaMensagem');
-  const formEditar = document.getElementById('formEditar');
-  const modalEditar = document.getElementById('modalEditar');
-  const modalMensagem = document.getElementById('modalMensagem');
+  const buscaEvento       = document.getElementById('buscaEvento');
+  const filtroCategoria   = document.getElementById('filtroCategoria');
+  const ordemData         = document.getElementById('ordemData');
+  const btnLimparFiltros  = document.getElementById('btnLimparFiltros');
+
+  const buscaMensagem     = document.getElementById('buscaMensagem');
+  const formEditar        = document.getElementById('formEditar');
+  const modalEditar       = document.getElementById('modalEditar');
+  const modalMensagem     = document.getElementById('modalMensagem');
+
+  const sessaoAtual       = Auth.getSessao();
+  const isAdminPrincipal  = sessaoAtual.tipo === 'admin';
+  const isContratante     = sessaoAtual.tipo === 'contratante';
+
+  // Ajusta o título da página conforme o tipo de usuário
+  if (isContratante) {
+    const headerH1 = document.querySelector('.page-header h1');
+    const headerP  = document.querySelector('.page-header p');
+
+    if (headerH1) headerH1.innerHTML = 'Painel do <span>Contratante</span>';
+    if (headerP)  headerP.textContent = 'Gerencie os seus eventos criados';
+
+    // Se for contratante, esconde Logs e Novo Admin
+    const adminBotoes = document.getElementById('adminBotoes');
+    if (adminBotoes) adminBotoes.style.display = 'none';
+    
+  }
 
   /* ---------- POPULAR SELECT DE CATEGORIAS ---------- */
   const categoriasUnicas = [...new Set(DB.getEventos().map(e => e.categoria))].sort();
@@ -72,36 +90,43 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ============================================================
      RENDERIZAR TABELA DE EVENTOS (COM FILTROS E ORDENAÇÃO)
      ============================================================ */
-  window.renderTabela = function() {
+    window.renderTabela = function() {
     const termoBusca = buscaEvento.value.toLowerCase().trim();
     const categoriaFiltro = filtroCategoria.value;
     const ordenacao = ordemData.value;
+    
+    // Pega os dados de quem está logado
+    const sessaoAtual = Auth.getSessao();
+    const isContratante = sessaoAtual && sessaoAtual.tipo === 'contratante';
 
-    const eventos = DB.getEventos();
+    let eventos = DB.getEventos();
+    
+    // 🔒 FILTRO MÁGICO: Se for Contratante, vê só os eventos dele.
+    // Se for Admin Principal, vê TODOS os eventos.
+    if (isContratante) {
+      eventos = eventos.filter(e => e.criador === sessaoAtual.email);
+    }
+
     const inscricoes = DB.getParticipantes();
     const tbody = document.getElementById('tabelaEventos');
 
-    // 1. Filtra os eventos
     let lista = eventos.filter(e => {
       const matchBusca = e.nome.toLowerCase().includes(termoBusca) || e.local.toLowerCase().includes(termoBusca);
       const matchCategoria = !categoriaFiltro || e.categoria === categoriaFiltro;
       return matchBusca && matchCategoria;
     });
 
-    // 2. Ordena por data
     if (ordenacao === 'date-asc') {
-      lista.sort((a, b) => new Date(a.data) - new Date(b.data)); // Mais próxima primeiro
+      lista.sort((a, b) => new Date(a.data) - new Date(b.data));
     } else if (ordenacao === 'date-desc') {
-      lista.sort((a, b) => new Date(b.data) - new Date(a.data)); // Mais distante primeiro
+      lista.sort((a, b) => new Date(b.data) - new Date(a.data));
     }
 
-    // Se não achar nada
     if (!lista.length) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray-600);">Nenhum evento encontrado.</td></tr>`;
       return;
     }
 
-    // 3. Desenha a tabela
     tbody.innerHTML = lista.map(e => {
       const inscritos = inscricoes.filter(p => p.eventoId === e.id).length;
       const restantes = e.vagas - inscritos;
@@ -136,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ============================================================
      LÓGICA DE EXCLUSÃO E EDIÇÃO
      ============================================================ */
-    window.excluirEvento = function(id, nome) {
+  window.excluirEvento = function(id, nome) {
     // Confirmação
     if (!confirm(`Excluir o evento "${nome}"? Os participantes vinculados também serão removidos.`)) return;
     
@@ -186,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalEditar.classList.add('open');
   };
 
-   formEditar.addEventListener('submit', e => {
+  formEditar.addEventListener('submit', e => {
     e.preventDefault();
     
     const id = parseInt(document.getElementById('editId').value);

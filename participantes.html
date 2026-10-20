@@ -27,7 +27,8 @@
           <li><a href="index.html">Início</a></li>
           <li><a href="eventos.html">Eventos</a></li>
           <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
-          <li><a href="participantes.html" class="active">Participantes</a></li>
+          <li><a href="meus-eventos.html">Meus Eventos</a></li>
+          <li><a href="participantes.html">Minhas Inscrições</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
           <li id="userMenu"></li>
@@ -46,6 +47,7 @@
 
   <section class="dashboard">
     <div class="container">
+
       <div class="admin-toolbar">
         <input type="text" class="admin-search" id="buscaParticipante"
                placeholder="🔍 Pesquisar por nome, evento ou e-mail...">
@@ -74,6 +76,7 @@
     if (isAdmin) {
       document.getElementById('adminLink').style.display = '';
     } else {
+      // Título amigável para qualquer usuário logado
       document.getElementById('pageTitle').innerHTML = 'Minhas <span>Inscrições</span>';
       document.getElementById('pageSubtitle').textContent =
         'Gerencie as inscrições que você fez nos eventos';
@@ -176,10 +179,11 @@
       if (confirm('Remover este participante?')) {
         DB.deleteParticipante(id);
         mostrarToast('Participante removido.', 'warning', '🗑');
-        
-        // LOG DE AUDITORIA (Admin removendo participante)
-        registrarLog('Excluir Participante', `O admin removeu a inscrição de "${p.nome}" no evento "${ev ? ev.nome : 'Removido'}".`);
-        
+
+        if (typeof registrarLog === 'function') {
+          registrarLog('Excluir Participante', `O admin removeu a inscrição de "${p.nome}" no evento "${ev ? ev.nome : 'Removido'}".`);
+        }
+
         render(document.getElementById('buscaParticipante').value);
       }
     }
@@ -202,8 +206,7 @@
 
       DB.deleteParticipante(id);
       mostrarToast(`Inscrição em "${nomeEvento}" cancelada.`, 'warning', '🗑');
-      
-      // LOG DE AUDITORIA (Participante cancelando a própria inscrição)
+
       if (typeof registrarLog === 'function') {
         registrarLog('Cancelar Inscrição', `O participante ${participante.email} cancelou a inscrição no evento "${nomeEvento}".`);
       }

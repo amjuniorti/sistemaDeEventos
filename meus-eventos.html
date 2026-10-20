@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Eventos — EventHub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo">Event<span>Hub</span></a>
+      <nav>
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="eventos.html">Eventos</a></li>
+          <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
+          <li><a href="meus-eventos.html">Meus Eventos</a></li> <!-- 👈 NOVO LINK FIXO -->
+          <li><a href="participantes.html">Minhas Inscrições</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contato.html">Contato</a></li>
+          <li id="userMenu"></li>
+        </ul>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+    <div class="container">
+      <h1>Painel do <span>Contratante</span></h1>
+      <p>Gerencie os eventos que você criou</p>
+    </div>
+  </section>
+
+  <section class="dashboard">
+    <div class="container">
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="admin-section">
+        <div class="admin-toolbar" style="align-items: flex-end;">
+          <h2>📅 Meus Eventos Criados</h2>
+          <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+            <input type="text" class="admin-search" id="buscaEvento" placeholder="🔍 Pesquisar evento...">
+            
+            <select id="ordemData" class="admin-search" style="max-width: 180px; padding: 0.7rem 1rem;">
+              <option value="date-asc">Data (Mais próxima)</option>
+              <option value="date-desc">Data (Mais distante)</option>
+            </select>
+            
+            <button class="btn btn-outline" id="btnLimparFiltros" style="padding: 0.7rem 1rem;">✕ Limpar</button>
+            <a href="cadastro-evento.html" class="btn btn-primary">+ Novo Evento</a>
+          </div>
+        </div>
+        <div class="admin-table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Categoria</th>
+                <th>Data</th>
+                <th>Vagas</th>
+                <th>Inscritos</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaEventos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal Editar Evento -->
+  <div class="modal-overlay" id="modalEditar">
+    <div class="modal">
+      <button class="modal-close" id="fecharModal">✕</button>
+      <div class="modal-body">
+        <h2>✏️ Editar Evento</h2>
+        <form id="formEditar">
+          <input type="hidden" id="editId">
+          <div class="form-group">
+            <label>Nome do evento</label>
+            <input type="text" id="editNome" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="editCategoria" required></select>
+            </div>
+            <div class="form-group">
+              <label>Data</label>
+              <input type="date" id="editData" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Horário</label>
+              <input type="text" id="editHorario" required>
+            </div>
+            <div class="form-group">
+              <label>Local</label>
+              <input type="text" id="editLocal" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Vagas</label>
+              <input type="number" id="editVagas" min="1" required>
+            </div>
+            <div class="form-group">
+              <label>Responsável</label>
+              <input type="text" id="editResponsavel" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea id="editDescricao" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">💾 Salvar alterações</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 🔒 Proteção: Apenas usuários logados
+      const sessao = Auth.getSessao();
+      if (!sessao) {
+        window.location.href = 'login.html?redirect=meus-eventos.html';
+        return;
+      }
+
+      const buscaEvento = document.getElementById('buscaEvento');
+      const ordemData = document.getElementById('ordemData');
+      const btnLimparFiltros = document.getElementById('btnLimparFiltros');
+      const formEditar = document.getElementById('formEditar');
+      const modalEditar = document.getElementById('modalEditar');
+
+      /* ============================================================
+         ESTATÍSTICAS DO CONTRATANTE
+         ============================================================ */
+      window.atualizarStats = function() {
+        const meusEventos = DB.getEventos().filter(e => e.criador === sessao.email);
+        const inscricoes = DB.getParticipantes();
+        const hoje = new Date().toISOString().split('T')[0];
+        
+        // Conta quantas inscrições existem nos eventos DESTE contratante
+        const totalInscricoes = inscricoes.filter(p => meusEventos.some(e => e.id === p.eventoId)).length;
+        const futuros = meusEventos.filter(e => e.data >= hoje).length;
+        const encerrados = meusEventos.filter(e => e.data < hoje).length;
+
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card">
+            <div class="icon">📅</div>
+            <div><div class="number">${meusEventos.length}</div><div class="label">Meus Eventos</div></div>
+          </div>
+          <div class="stat-card success">
+            <div class="icon">📝</div>
+            <div><div class="number">${totalInscricoes}</div><div class="label">Inscrições recebidas</div></div>
+          </div>
+          <div class="stat-card info">
+            <div class="icon">🚀</div>
+            <div><div class="number">${futuros}</div><div class="label">Eventos futuros</div></div>
+          </div>
+          <div class="stat-card warning">
+            <div class="icon">✅</div>
+            <div><div class="number">${encerrados}</div><div class="label">Eventos encerrados</div></div>
+          </div>`;
+      };
+
+      /* ============================================================
+         RENDERIZAR TABELA
+         ============================================================ */
+      window.renderTabela = function() {
+        const termoBusca = buscaEvento.value.toLowerCase().trim();
+        const ordenacao = ordemData.value;
+
+        // Pega APENAS os eventos criados por este contratante
+        let lista = DB.getEventos().filter(e => e.criador === sessao.email);
+        const inscricoes = DB.getParticipantes();
+        const tbody = document.getElementById('tabelaEventos');
+
+        // Filtra por busca
+        if (termoBusca) {
+          lista = lista.filter(e => 
+            e.nome.toLowerCase().includes(termoBusca) || 
+            e.local.toLowerCase().includes(termoBusca)
+          );
+        }
+
+        // Ordena
+        if (ordenacao === 'date-asc') {
+          lista.sort((a, b) => new Date(a.data) - new Date(b.data));
+        } else {
+          lista.sort((a, b) => new Date(b.data) - new Date(a.data));
+        }
+
+        if (!lista.length) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray-600);">Você ainda não criou nenhum evento.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = lista.map(e => {
+          const inscritos = inscricoes.filter(p => p.eventoId === e.id).length;
+          const restantes = e.vagas - inscritos;
+          return `
+            <tr>
+              <td><strong>${e.nome}</strong></td>
+              <td><span class="badge info">${e.categoria}</span></td>
+              <td>${formatarData(e.data)}</td>
+              <td>${e.vagas}</td>
+              <td>${inscritos} (${restantes > 0 ? restantes + ' restantes' : 'LOTADO'})</td>
+              <td>
+                <div class="actions">
+                  <button class="btn btn-outline btn-sm" onclick="editarEvento(${e.id})" title="Editar">✏️</button>
+                  <button class="btn btn-danger btn-sm" onclick="excluirEvento(${e.id}, '${e.nome.replace(/'/g, "\\'")}')" title="Excluir">🗑</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+      };
+
+      /* ============================================================
+         LÓGICA DE EXCLUSÃO E EDIÇÃO
+         ============================================================ */
+      window.excluirEvento = function(id, nome) {
+        if (!confirm(`Excluir o evento "${nome}"? Os participantes vinculados também serão removidos.`)) return;
+        
+        DB.deleteEvento(id);
+        const participantes = DB.getParticipantes().filter(p => p.eventoId !== id);
+        DB.setParticipantes(participantes);
+        
+        if (typeof registrarLog === 'function') {
+          registrarLog('Excluir Evento', `O contratante ${sessao.email} excluiu o evento "${nome}" (ID ${id}).`);
+        }
+
+        mostrarToast('Evento excluído.', 'warning', '🗑');
+        atualizarStats();
+        renderTabela(); 
+      };
+
+      window.editarEvento = function(id) {
+        const e = DB.getEventos().find(x => x.id === id);
+        if (!e) return;
+        
+        document.getElementById('editId').value = e.id;
+        document.getElementById('editNome').value = e.nome;
+        document.getElementById('editData').value = e.data;
+        document.getElementById('editHorario').value = e.horario;
+        document.getElementById('editLocal').value = e.local;
+        document.getElementById('editVagas').value = e.vagas;
+        document.getElementById('editResponsavel').value = e.responsavel;
+        document.getElementById('editDescricao').value = e.descricao;
+
+        const catSelect = document.getElementById('editCategoria');
+        catSelect.innerHTML = '';
+        const categorias = ['Tecnologia', 'Inteligência Artificial', 'Programação', 'Redes', 'Banco de Dados', 'Desenvolvimento Web'];
+        categorias.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c; opt.textContent = c;
+          if (c === e.categoria) opt.selected = true;
+          catSelect.appendChild(opt);
+        });
+
+        modalEditar.classList.add('open');
+      };
+
+      formEditar.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        const id = parseInt(document.getElementById('editId').value);
+        const dadosAtualizados = {
+          nome: document.getElementById('editNome').value.trim(),
+          categoria: document.getElementById('editCategoria').value,
+          data: document.getElementById('editData').value,
+          horario: document.getElementById('editHorario').value.trim(),
+          local: document.getElementById('editLocal').value.trim(),
+          vagas: parseInt(document.getElementById('editVagas').value),
+          responsavel: document.getElementById('editResponsavel').value.trim(),
+          descricao: document.getElementById('editDescricao').value.trim()
+        };
+
+        DB.updateEvento(id, dadosAtualizados);
+
+        if (typeof registrarLog === 'function') {
+          registrarLog('Editar Evento', `O contratante ${sessao.email} atualizou o evento "${dadosAtualizados.nome}" (ID ${id}).`);
+        }
+
+        modalEditar.classList.remove('open');
+        mostrarToast('Evento atualizado!', 'success', '✏️');
+        atualizarStats();
+        renderTabela();
+      });
+
+      /* ============================================================
+         LISTENERS
+         ============================================================ */
+      buscaEvento.addEventListener('input', renderTabela);
+      ordemData.addEventListener('change', renderTabela);
+      btnLimparFiltros.addEventListener('click', () => {
+        buscaEvento.value = '';
+        ordemData.value = 'date-asc';
+        renderTabela();
+      });
+
+      document.getElementById('fecharModal').addEventListener('click', () => modalEditar.classList.remove('open'));
+      modalEditar.addEventListener('click', (e) => { if (e.target === modalEditar) modalEditar.classList.remove('open'); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') modalEditar.classList.remove('open'); });
+
+      atualizarStats();
+      renderTabela();
+    });
+  </script>
+</body>
+</html>

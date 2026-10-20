@@ -1,9 +1,9 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 🔒 PROTEÇÃO: Só entra se estiver logado como participante
+  // 🔒 PROTEÇÃO: Permite Participante OU Contratante
   const sessao = Auth.getSessao();
-  if (!sessao || sessao.tipo !== 'participante') {
+  if (!sessao || (sessao.tipo !== 'participante' && sessao.tipo !== 'contratante')) {
     mostrarToast('Você precisa estar logado para se inscrever.', 'warning', '🔒');
     const urlAtual = location.pathname.split('/').pop() + location.search;
     setTimeout(() => {
@@ -12,6 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // Preenche os dados do usuário logado
+  document.getElementById('emailSessao').textContent = sessao.email;
+  const nomeInput = document.getElementById('nome');
+  const emailInput = document.getElementById('email');
+  
+  nomeInput.value = sessao.nome || sessao.email.split('@')[0];
+  emailInput.value = sessao.email;
+
+  // ... (o restante do código continua igual, a partir do "Popula o select de eventos")
   // Preenche os dados do usuário logado
   document.getElementById('emailSessao').textContent = sessao.email;
   const nomeInput = document.getElementById('nome');

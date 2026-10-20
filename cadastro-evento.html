@@ -14,8 +14,9 @@
         <ul class="nav-menu" id="navMenu">
           <li><a href="index.html">Início</a></li>
           <li><a href="eventos.html">Eventos</a></li>
-          <li id="adminLink"><a href="admin.html" class="active">Admin</a></li>
-          <li><a href="participantes.html">Participantes</a></li>
+          <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
+          <li><a href="meus-eventos.html">Meus Eventos</a></li>
+          <li><a href="participantes.html">Minhas Inscrições</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
           <li id="userMenu"></li>
@@ -107,8 +108,12 @@
   <script src="js/validacao.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // 🔒 Apenas Admin pode acessar esta página
-      if (!Auth.proteger(true)) return;
+      // 🔒 Proteção: Apenas usuários logados
+      const sessao = Auth.getSessao();
+      if (!sessao) {
+        window.location.href = 'login.html?redirect=cadastro-evento.html';
+        return;
+      }
 
       const form = document.getElementById('formEvento');
 
@@ -161,11 +166,11 @@
           responsavel: responsavel.value.trim(),
           imagem: emojis[categoria.value] || '📌',
           cor: cores[Math.floor(Math.random() * cores.length)],
-          programacao: []
+          programacao: [],
+          criador: sessao.email
         });
 
-        // 👇 LOG DE AUDITORIA ADICIONADO AQUI
-        registrarLog('Cadastrar Evento', `Novo evento criado: "${nome.value.trim()}" na categoria ${categoria.value}.`);
+        registrarLog('Cadastrar Evento', `Novo evento criado: "${nome.value.trim()}" por ${sessao.email}.`);
 
         mostrarToast('Evento cadastrado com sucesso!', 'success', '✅');
         setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
