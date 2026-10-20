@@ -30,20 +30,6 @@
     .auth-info a { color: var(--primary); font-weight: 700; cursor: pointer; }
     .auth-info a:hover { text-decoration: underline; }
     .auth-demo { background: #fff8e1; border-left: 4px solid var(--warning); padding: 0.8rem 1rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: #856404; margin-bottom: 1.5rem; text-align: center; }
-    
-    /* SELETOR DE PERFIL */
-    .role-selector { display: flex; gap: 0.8rem; margin-bottom: 1.2rem; }
-    .role-option {
-      flex: 1; border: 2px solid var(--gray-300); border-radius: var(--radius-sm);
-      padding: 0.8rem; text-align: center; cursor: pointer; transition: var(--transition);
-      background: white;
-    }
-    .role-option:hover { border-color: var(--gray-500); }
-    .role-option.selected { border-color: var(--primary); background: rgba(233,69,96,0.05); }
-    .role-option input[type="radio"] { display: none; }
-    .role-option .icon { font-size: 1.5rem; display: block; margin-bottom: 0.3rem; }
-    .role-option .label { font-size: 0.85rem; font-weight: 700; color: var(--dark); display: block; }
-    .role-option .desc { font-size: 0.72rem; color: var(--gray-600); margin-top: 0.2rem; display: block; }
   </style>
 </head>
 <body>
@@ -94,23 +80,6 @@
 
       <!-- CADASTRO -->
       <form class="auth-form" id="formCadastro" novalidate>
-        
-        <!-- SELETOR DE PERFIL -->
-        <div class="role-selector">
-          <label class="role-option selected" id="roleParticipante">
-            <input type="radio" name="role" value="participante" checked>
-            <span class="icon">🎟️</span>
-            <span class="label">Participante</span>
-            <span class="desc">Quero me inscrever</span>
-          </label>
-          <label class="role-option" id="roleContratante">
-            <input type="radio" name="role" value="contratante">
-            <span class="icon">💼</span>
-            <span class="label">Contratante</span>
-            <span class="desc">Quero criar eventos</span>
-          </label>
-        </div>
-
         <div class="form-group">
           <label for="cadEmail">E-mail</label>
           <input type="email" id="cadEmail" placeholder="seu@email.com" autocomplete="email" required>
@@ -164,7 +133,7 @@
       };
       const titulos = {
         login: ['Bem-vindo de volta', 'Acesse sua conta para gerenciar eventos'],
-        cadastro: ['Crie sua conta', 'Escolha seu perfil e comece agora'],
+        cadastro: ['Crie sua conta', 'Preencha os dados e comece agora'],
         recuperar: ['Recuperar senha', 'Receba instruções para redefinir sua senha']
       };
 
@@ -181,22 +150,6 @@
           document.getElementById('authTitle').textContent = titulos[tipo][0];
           document.getElementById('authSubtitle').textContent = titulos[tipo][1];
         });
-      });
-
-      /* ============================================================
-         SELETOR DE PERFIL (VISUAL)
-         ============================================================ */
-      const roleParticipante = document.getElementById('roleParticipante');
-      const roleContratante = document.getElementById('roleContratante');
-
-      roleParticipante.addEventListener('click', () => {
-        roleParticipante.classList.add('selected');
-        roleContratante.classList.remove('selected');
-      });
-      
-      roleContratante.addEventListener('click', () => {
-        roleContratante.classList.add('selected');
-        roleParticipante.classList.remove('selected');
       });
 
       /* ============================================================
@@ -229,11 +182,11 @@
           if (redirect) {
             window.location.href = redirect;
           } else if (resultado.usuario.tipo === 'admin') {
-            window.location.href = 'admin.html'; // Admin vai pro painel geral
+            window.location.href = 'admin.html';
           } else if (resultado.usuario.tipo === 'contratante') {
-            window.location.href = 'meus-eventos.html'; // Contratante vai pro painel dele
+            window.location.href = 'meus-eventos.html';
           } else {
-            window.location.href = 'participantes.html'; // Participante vai pras inscrições
+            window.location.href = 'participantes.html';
           }
         }, 800);
       });
@@ -241,7 +194,7 @@
       /* ============================================================
          CADASTRO
          ============================================================ */
-            forms.cadastro.addEventListener('submit', e => {
+      forms.cadastro.addEventListener('submit', e => {
         e.preventDefault();
         Validacao.limparTodos(forms.cadastro);
 
@@ -256,7 +209,7 @@
         
         if (!ok) { mostrarToast('Corrija os campos.', 'error', '⚠️'); return; }
 
-        // Cadastra apenas como participante (mas todos podem criar eventos)
+        // Cadastra como participante por padrão
         const resultado = Auth.cadastrar(email.value.trim(), senha.value, 'participante');
         
         if (!resultado.sucesso) {
