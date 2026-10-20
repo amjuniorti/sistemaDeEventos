@@ -6,6 +6,52 @@
   <title>Dashboard Administrativo — EventHub</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/admin.css">
+  <style>
+    /* ===== MENU DE ABAS DO ADMIN ===== */
+    .admin-menu-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--gray-200, #e5e5e5);
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-menu-item {
+      padding: 0.75rem 1.25rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--gray-600, #666);
+      text-decoration: none;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      margin-bottom: -2px;
+      cursor: pointer;
+    }
+
+    .admin-menu-item:hover {
+      color: var(--primary, #e94560);
+      background: rgba(233, 69, 96, 0.05);
+    }
+
+    .admin-menu-item.active {
+      color: var(--primary, #e94560);
+      border-bottom-color: var(--primary, #e94560);
+    }
+
+    .admin-section-tab {
+      display: none;
+    }
+
+    .admin-section-tab.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -13,10 +59,10 @@
       <a href="index.html" class="logo">Event<span>Hub</span></a>
       <nav>
         <ul class="nav-menu" id="navMenu">
-         <li><a href="index.html">Início</a></li>
+          <li><a href="index.html">Início</a></li>
           <li><a href="eventos.html">Eventos</a></li>
           <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
-          <li><a href="meus-eventos.html">Meus Eventos</a></li> <!-- 👈 NOVO LINK FIXO -->
+          <li><a href="meus-eventos.html">Meus Eventos</a></li>
           <li><a href="participantes.html">Minhas Inscrições</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
@@ -38,8 +84,14 @@
     <div class="container">
       <div class="stats-grid" id="statsGrid"></div>
 
-      <!-- ===== TABELA DE EVENTOS ===== -->
-      <div class="admin-section">
+      <!-- ===== MENU DE ABAS ===== -->
+      <div class="admin-menu-tabs" id="adminTabs">
+        <a href="#secao-eventos" class="admin-menu-item active">📅 Eventos Cadastrados</a>
+        <a href="#secao-mensagens" class="admin-menu-item">📩 Mensagens de Contato</a>
+      </div>
+
+      <!-- ===== ABA: EVENTOS ===== -->
+      <div class="admin-section admin-section-tab active" id="secao-eventos">
         <div class="admin-toolbar" style="align-items: flex-end;">
           <h2>📅 Eventos Cadastrados</h2>
           <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
@@ -87,8 +139,8 @@
         </div>
       </div>
 
-      <!-- ===== MENSAGENS DE CONTATO ===== -->
-      <div class="admin-section" style="margin-top:2.5rem;">
+      <!-- ===== ABA: MENSAGENS DE CONTATO ===== -->
+      <div class="admin-section admin-section-tab" id="secao-mensagens">
         <div class="admin-toolbar">
           <h2>📩 Mensagens de Contato</h2>
           <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
@@ -112,6 +164,7 @@
           </table>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -186,12 +239,52 @@
   <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // ✅ Protege a página: só admins (principal OU contratante) podem entrar
-        const sessao = Auth.getSessao();
+    // ✅ Protege a página: só admins podem entrar
+    const sessao = Auth.getSessao();
     if (!sessao || sessao.tipo !== 'admin') {
       window.location.href = 'acesso-negado.html';
     }
   </script>
   <script src="js/admin.js"></script>
+
+  <!-- ===== CONTROLE DAS ABAS ===== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuItems = document.querySelectorAll('.admin-menu-item');
+      const sections  = document.querySelectorAll('.admin-section-tab');
+
+      function ativarAba(item) {
+        menuItems.forEach(i => i.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+
+        item.classList.add('active');
+
+        const targetId = item.getAttribute('href').replace('#', '');
+        const target = document.getElementById(targetId);
+        if (target) target.classList.add('active');
+
+        history.replaceState(null, '', '#' + targetId);
+      }
+
+      menuItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          ativarAba(item);
+        });
+      });
+
+      // Se a URL tiver hash (#secao-mensagens, por exemplo), abre a aba certa
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        const target = document.querySelector(`.admin-menu-item[href="#${hash}"]`);
+        if (target) {
+          ativarAba(target);
+        } else {
+          // Se o hash não corresponder a nenhuma aba, força a primeira
+          if (menuItems[0]) ativarAba(menuItems[0]);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
