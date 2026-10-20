@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inscrição — EventHub</title>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Biblioteca do QR Code -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -14,13 +15,13 @@
       <nav>
         <ul class="nav-menu" id="navMenu">
           <li><a href="index.html">Início</a></li>
-          <li><a href="eventos.html">Eventos</a></li>
+          <li><a href="eventos.html" class="active">Eventos</a></li>
           <li id="adminLink" style="display:none;"><a href="admin.html">Admin</a></li>
-          <li><a href="meus-eventos.html">Meus Eventos</a></li> <!-- 👈 NOVO LINK FIXO -->
+          <li><a href="meus-eventos.html">Meus Eventos</a></li>
           <li><a href="participantes.html">Minhas Inscrições</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contato.html">Contato</a></li>
-          <li id="userMenu"><a href="login.html" class="btn-login">Entrar</a></li>
+          <li id="userMenu"></li>
         </ul>
       </nav>
       <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
@@ -37,7 +38,6 @@
   <section style="padding:3rem 0; flex:1;">
     <div class="container" style="max-width:640px;">
       
-      <!-- Aviso de conta vinculada -->
       <div style="margin-bottom:1.5rem; padding:1rem 1.2rem; background:#e3f2fd; border-left:4px solid var(--info); border-radius:6px; color:#0d47a1; font-size:0.9rem;">
         ℹ️ Você está logado como <strong id="emailSessao"></strong>. Sua inscrição será vinculada a esta conta.
       </div>
@@ -45,19 +45,21 @@
       <form class="form-card" id="formInscricao" novalidate>
         <div class="form-group">
           <label for="eventoSelect">Evento escolhido <span class="req">*</span></label>
-          <select id="eventoSelect" name="evento" required></select>
+          <select id="eventoSelect" name="evento" required>
+            <option value="">Carregando eventos...</option>
+          </select>
           <span class="error-msg">Selecione um evento.</span>
         </div>
         
         <div class="form-group">
           <label for="nome">Nome completo <span class="req">*</span></label>
-          <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required readonly style="background:var(--gray-100);">
+          <input type="text" id="nome" name="nome" required readonly style="background:var(--gray-100);">
           <span class="error-msg">Informe seu nome.</span>
         </div>
         
         <div class="form-group">
           <label for="email">E-mail <span class="req">*</span></label>
-          <input type="email" id="email" name="email" placeholder="seu@email.com" required readonly style="background:var(--gray-100);">
+          <input type="email" id="email" name="email" required readonly style="background:var(--gray-100);">
           <span class="error-msg">Informe um e-mail válido.</span>
         </div>
         
@@ -65,31 +67,27 @@
           <div class="form-group">
             <label for="telefone">Telefone <span class="req">*</span></label>
             <input type="tel" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
-            <span class="error-msg">Telefone inválido (10 ou 11 dígitos).</span>
+            <span class="error-msg">Telefone inválido.</span>
           </div>
           <div class="form-group">
             <label for="nascimento">Data de nascimento <span class="req">*</span></label>
             <input type="date" id="nascimento" name="nascimento" required>
-            <span class="error-msg">Data inválida (idade mín. 10 anos).</span>
+            <span class="error-msg">Data inválida.</span>
           </div>
         </div>
         
         <button type="submit" class="btn btn-primary" style="width:100%;">✅ Confirmar Inscrição</button>
-        <div id="mensagemSucesso" style="display:none; margin-top:1.5rem; padding:1rem; background:#e8f5e9; border-left:4px solid var(--success); border-radius:6px; color:#1b5e20; font-weight:600;">
-          ✅ Inscrição realizada com sucesso!
-        </div>
       </form>
     </div>
   </section>
 
   <footer>
     <div class="container">
-      <div class="footer-bottom">
-        <p>&copy; 2025 EventHub. Todos os direitos reservados.</p>
-      </div>
+      <div class="footer-bottom"><p>&copy; 2025 EventHub. Todos os direitos reservados.</p></div>
     </div>
   </footer>
 
+  <!-- ORDEM CORRETA DOS SCRIPTS -->
   <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/validacao.js"></script>

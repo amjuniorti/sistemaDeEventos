@@ -1,47 +1,54 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 🔒 PROTEÇÃO: Permite Participante OU Contratante
+  console.log('Inscrição: Script iniciado.');
+
+  // 🔒 PROTEÇÃO: Exige login
   const sessao = Auth.getSessao();
-  if (!sessao || (sessao.tipo !== 'participante' && sessao.tipo !== 'contratante')) {
+  if (!sessao) {
+    console.warn('Inscrição: Usuário não logado.');
     mostrarToast('Você precisa estar logado para se inscrever.', 'warning', '🔒');
-    const urlAtual = location.pathname.split('/').pop() + location.search;
     setTimeout(() => {
-      window.location.href = `login.html?redirect=${encodeURIComponent(urlAtual)}`;
+      window.location.href = 'login.html?redirect=inscricao.html';
     }, 1500);
     return;
   }
 
+  console.log('Inscrição: Usuário logado:', sessao.email);
+
   // Preenche os dados do usuário logado
   document.getElementById('emailSessao').textContent = sessao.email;
-  const nomeInput = document.getElementById('nome');
-  const emailInput = document.getElementById('email');
-  
-  nomeInput.value = sessao.nome || sessao.email.split('@')[0];
-  emailInput.value = sessao.email;
+  document.getElementById('nome').value = sessao.nome || sessao.email.split('@')[0];
+  document.getElementById('email').value = sessao.email;
 
-  // ... (o restante do código continua igual, a partir do "Popula o select de eventos")
-  // Preenche os dados do usuário logado
-  document.getElementById('emailSessao').textContent = sessao.email;
-  const nomeInput = document.getElementById('nome');
-  const emailInput = document.getElementById('email');
-  
-  nomeInput.value = sessao.nome || sessao.email.split('@')[0];
-  emailInput.value = sessao.email;
-
-  // Popula o select de eventos
+  // ============================================================
+  // POPULAR SELECT DE EVENTOS
+  // ============================================================
   const eventos = DB.getEventos();
   const select = document.getElementById('eventoSelect');
+  
+  console.log('Inscrição: Total de eventos encontrados:', eventos.length);
+
+  // Limpa o select
+  select.innerHTML = '<option value="">Selecione um evento...</option>';
+
+  if (eventos.length === 0) {
+    select.innerHTML = '<option value="">Nenhum evento disponível no momento.</option>';
+    return;
+  }
 
   eventos.forEach(e => {
     const inscritos = DB.getParticipantes().filter(p => p.eventoId === e.id).length;
     const restantes = e.vagas - inscritos;
+    
     const opt = document.createElement('option');
     opt.value = e.id;
     opt.textContent = `${e.nome} — ${formatarData(e.data)} (${restantes > 0 ? restantes + ' vagas' : 'LOTADO'})`;
-    opt.disabled = restantes <= 0;
+    if (restantes <= 0) opt.disabled = true;
     select.appendChild(opt);
   });
+
+  console.log('Inscrição: Select preenchido com sucesso.');
 
   // Pré-seleciona o evento se vier pela URL
   const params = new URLSearchParams(location.search);
@@ -54,11 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Máscara de telefone
   document.getElementById('telefone').addEventListener('input', e => {
     let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-    if (v.length > 6) {
-      v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
-    } else if (v.length > 2) {
-      v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
-    }
+    if (v.length > 6) v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+    else if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
     e.target.value = v;
   });
 
@@ -77,21 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let valido = true;
 
-    if (!nome.value.trim() || nome.value.trim().length < 3) {
-      Validacao.aplicarErro(nome, 'Nome inválido (mín. 3 letras).'); valido = false;
-    }
-    if (!Validacao.emailValido(email.value.trim())) {
-      Validacao.aplicarErro(email, 'E-mail inválido.'); valido = false;
-    }
-    if (!Validacao.telefoneValido(telefone.value)) {
-      Validacao.aplicarErro(telefone, 'Telefone inválido.'); valido = false;
-    }
-    if (!Validacao.dataNascimentoValida(nascimento.value)) {
-      Validacao.aplicarErro(nascimento, 'Data inválida.'); valido = false;
-    }
-    if (!select.value) {
-      Validacao.aplicarErro(select, 'Escolha um evento.'); valido = false;
-    }
+    if (!nome.value.trim() || nome.value.trim().length < 3) { Validacao.aplicarErro(nome, 'Nome inválido.'); valido = false; }
+    if (!Validacao.emailValido(email.value.trim())) { Validacao.aplicarErro(email, 'E-mail inválido.'); valido = false; }
+    if (!Validacao.telefoneValido(telefone.value)) { Validacao.aplicarErro(telefone, 'Telefone inválido.'); valido = false; }
+    if (!Validacao.dataNascimentoValida(nascimento.value)) { Validacao.aplicarErro(nascimento, 'Data inválida.'); valido = false; }
+    if (!select.value) { Validacao.aplicarErro(select, 'Escolha um evento.'); valido = false; }
 
     if (!valido) {
       mostrarToast('Corrija os campos destacados.', 'error', '⚠️');
@@ -101,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventoId = parseInt(select.value);
     const emailFinal = email.value.trim().toLowerCase();
 
-    // Validação de duplicidade
     const jaInscrito = DB.getParticipantes().find(p =>
       p.eventoId === eventoId && p.email.toLowerCase() === emailFinal
     );
@@ -112,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Validação de vagas
     const evento = DB.getEventos().find(e => e.id === eventoId);
     const inscritos = DB.getParticipantes().filter(p => p.eventoId === eventoId).length;
 
@@ -121,9 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // ============================================================
-    // GERA O CÓDIGO DO INGRESSO E SALVA
-    // ============================================================
     const codigoIngresso = 'EVH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
     DB.addParticipante({
@@ -137,9 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     registrarLog('Nova Inscrição', `Inscrição no evento "${evento.nome}" por ${emailFinal}.`);
 
-    // ============================================================
-    // EXIBE O INGRESSO COM QR CODE NA TELA
-    // ============================================================
     form.style.display = 'none';
     
     const ticketDiv = document.createElement('div');
@@ -171,10 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     
-    // Adiciona o ingresso na tela (logo abaixo do formulário oculto)
     form.parentElement.appendChild(ticketDiv);
     
-    // Gera o QR Code
     setTimeout(() => {
       new QRCode(document.getElementById("qrcode"), {
         text: `Evento: ${evento.nome}\nParticipante: ${nome.value.trim()}\nCódigo: ${codigoIngresso}`,
